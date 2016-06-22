@@ -11,10 +11,15 @@ link_directories(${CMAKE_BINARY_DIR}/lib)
 
 # Flags
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Ofast -s -static")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Ofast -s")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -W -pedantic -Wextra")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -Ofast -s -static")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -Ofast -s")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -W -pedantic -Wextra")
+
+if (WIN32)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -static")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static")
+endif (WIN32)
 
 # Include headers
 
@@ -22,6 +27,15 @@ include_directories("include")
 
 # Sources
 
-file(GLOB WINDOOPI_SRC "src/*.cpp")
+#file(GLOB WINDOOPI_SRC "src/*.cpp" "src/*.c")
+
+file(GLOB WINDOOPI_SRC "src/paex_sine.c")
 add_executable(windoopi ${WINDOOPI_SRC})
-target_link_libraries(windoopi portaudio.a winmm setupapi winpthread.a stdc++.a gcc.a winpthread.a)
+
+if (WIN32)
+    target_link_libraries(windoopi portaudio.a winmm setupapi winpthread.a stdc++.a gcc.a winpthread.a)
+endif (WIN32)
+
+if (UNIX)
+target_link_libraries(windoopi portaudio m)
+endif (UNIX)
