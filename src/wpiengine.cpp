@@ -12,6 +12,12 @@ void WpiEngine::init()
 void WpiEngine::terminate()
 {
     err = Pa_Terminate();
+    if (inputParameters)    delete inputParameters;
+    if (outputParameters)   delete outputParameters;
+    if (sampleData)         delete [] sampleData;
+    inputParameters     = NULL;
+    outputParameters    = NULL;
+    sampleData          = NULL;
 }
 
 void WpiEngine::checkPaError()
@@ -28,6 +34,7 @@ void WpiEngine::initSampleData()
 {
     frameIndex = 0;
     delete [] sampleData;
+    sampleData = NULL;
     if ( ! (sampleData = new SAMPLE[numSamples()]) )  return printf("Could not allocate record array.\n"), terminate();
     memset (sampleData, 0.f, numSamples() * sizeof(SAMPLE));
 }

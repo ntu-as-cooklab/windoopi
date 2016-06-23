@@ -31,39 +31,43 @@
 
 struct WpiEngine
 {
-    PaError err = paNoError;
-
-    int numDevices;
-
+    PaError             err = paNoError;
     ~WpiEngine()        { terminate(); }
-
     void init();
     void terminate();
     void checkPaError();
-    void initSampleData();
 
+    int numDevices;
     void printDevs();
     void printSupportedStandardSampleRates(const PaStreamParameters *inputParameters, const PaStreamParameters *outputParameters);
 
-    PaStreamParameters  inputParameters;
-    //PaStreamParameters  outputParameters    = NULL;
+    PaStreamParameters* inputParameters     = NULL;
+    PaStreamParameters* outputParameters    = NULL;
     PaStream*           stream;
 
-    int                 frameIndex          = 0;
+    size_t              frameIndex          = 0;
     SAMPLE*             sampleData          = NULL;
 
-    int                 NUM_SECONDS         = 10;
-    int                 SAMPLE_RATE         = 44100;
-    int                 NUM_CHANNELS        = 2;    // stereo input
-    int                 FRAMES_PER_BUFFER   = 512;
+    unsigned int        NUM_SECONDS         = 3;
+    unsigned int        NUM_CHANNELS        = 2;    // stereo input
+    unsigned int        SAMPLE_RATE         = 44100;
+    unsigned int        FRAMES_PER_BUFFER   = 512;
 
-    inline int numFrames()       { return NUM_SECONDS * SAMPLE_RATE; }
-    inline int numSamples()      { return numFrames() * NUM_CHANNELS; }
-    inline int numBytes()        { return numSamples() * sizeof(SAMPLE); }
+    inline size_t numFrames()               { return NUM_SECONDS * SAMPLE_RATE; }
+    inline size_t numSamples()              { return numFrames() * NUM_CHANNELS; }
+    inline size_t numBytes()                { return numSamples() * sizeof(SAMPLE); }
 
     #define DITHER_FLAG     (paDitherOff)
 
+    void initSampleData();
     void record();
+    int recordCallback(const void *inputBuffer, void *outputBuffer,
+                        unsigned long framesPerBuffer, const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags);
+    void write();
+
+    void play();
+    int playCallback(const void *inputBuffer, void *outputBuffer,
+                        unsigned long framesPerBuffer, const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags);
 };
 
 #endif

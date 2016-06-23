@@ -51,25 +51,31 @@
 ** It may be called at interrupt level on some machines so don't do anything
 ** that could mess up the system like calling malloc() or free().
 */
-static int recordCallback( const void *inputBuffer, void *outputBuffer,
+static int recordCallbackWrapper( const void *inputBuffer, void *outputBuffer,
                            unsigned long framesPerBuffer,
                            const PaStreamCallbackTimeInfo* timeInfo,
                            PaStreamCallbackFlags statusFlags,
                            void *userData )
 {
-            WpiEngine       *engine         = (WpiEngine*) userData;
+    return ((WpiEngine*) userData)->recordCallback(inputBuffer, outputBuffer, framesPerBuffer, timeInfo, statusFlags);
+}
+
+int WpiEngine::recordCallback( const void *inputBuffer, void *outputBuffer,
+                           unsigned long framesPerBuffer,
+                           const PaStreamCallbackTimeInfo* timeInfo,
+                           PaStreamCallbackFlags statusFlags)
+{
     const   SAMPLE          *rptr           = (const SAMPLE*) inputBuffer;
-            SAMPLE          *wptr           = &engine->sampleData[engine->frameIndex * engine->NUM_CHANNELS];
-            long            framesToCalc;
+            SAMPLE          *wptr           = & sampleData[frameIndex * NUM_CHANNELS];
+            size_t          framesToCalc;
             int             finished;
 
     // Prevent unused variable warnings
     (void) outputBuffer;
     (void) timeInfo;
     (void) statusFlags;
-    (void) userData;
 
-    if( unsigned long framesLeft = engine->numFrames() - engine->frameIndex < framesPerBuffer )
+    if( size_t framesLeft = numFrames() - frameIndex < framesPerBuffer )
     {
         framesToCalc = framesLeft;
         finished = paComplete;
@@ -81,16 +87,16 @@ static int recordCallback( const void *inputBuffer, void *outputBuffer,
     }
 
     static float cumulatedVolume = 0;
-    static int cumulatedFrames = 0;
+    static size_t cumulatedFrames = 0;
 
-    for(long i=0; i<framesToCalc; i++ )
-        for (int n=0; n<engine->NUM_CHANNELS; n++)
+    for(size_t i = 0; i < framesToCalc; i++ )
+        for (unsigned int n = 0; n < NUM_CHANNELS; n++)
             cumulatedVolume += (*wptr++ = inputBuffer ? *rptr++ : SAMPLE_SILENCE);
-    engine->frameIndex += framesToCalc;
+    frameIndex += framesToCalc;
 
     // Calculate and display current volume
     cumulatedFrames += framesToCalc;
-    if (cumulatedFrames >= engine->SAMPLE_RATE/100)
+    if (cumulatedFrames >= SAMPLE_RATE/100)
     {
         cumulatedVolume /= cumulatedFrames;
         //printf ("%f\n", cumulatedVolume);
@@ -106,15 +112,16 @@ static int recordCallback( const void *inputBuffer, void *outputBuffer,
     return finished;
 }
 
-
 void WpiEngine::record()
 {
     // Set input parameters
-    if ( (inputParameters.device = Pa_GetDefaultInputDevice()) == paNoDevice )  return printf("Error: No default input device.\n"), terminate();
-    inputParameters.channelCount = NUM_CHANNELS;
-    inputParameters.sampleFormat = PA_SAMPLE_TYPE;
-    inputParameters.suggestedLatency = Pa_GetDeviceInfo( inputParameters.device )->defaultLowInputLatency;
-    inputParameters.hostApiSpecificStreamInfo = NULL;
+    delete inputParameters;
+    inputParameters = new PaStreamParameters;
+    if ( (inputParameters->device = Pa_GetDefaultInputDevice()) == paNoDevice )  return printf("Error: No default input device.\n"), terminate();
+    inputParameters->channelCount = NUM_CHANNELS;
+    inputParameters->sampleFormat = PA_SAMPLE_TYPE;
+    inputParameters->suggestedLatency = Pa_GetDeviceInfo( inputParameters->device )->defaultLowInputLatency;
+    inputParameters->hostApiSpecificStreamInfo = NULL;
 
     // Initialize data
     initSampleData();
@@ -122,12 +129,12 @@ void WpiEngine::record()
     // Record some audio. --------------------------------------------
     err = Pa_OpenStream(
               &stream,
-              &inputParameters,
+              inputParameters,
               NULL,                     //&outputParameters
               SAMPLE_RATE,
               FRAMES_PER_BUFFER,
               paClipOff,                // we won't output out of range samples so don't bother clipping them
-              recordCallback,
+              recordCallbackWrapper,
               this );
     checkPaError();
 
@@ -144,48 +151,67 @@ void WpiEngine::record()
     checkPaError();
 
     // Measure maximum peak amplitude.
-    /*max = 0;
-    average = 0.0;
-    for( i=0; i<numSamples; i++ )
+    SAMPLE max = 0, average = 0;
+    for(size_t i = 0; i < numSamples(); i++ )
     {
-        val = data.recordedSamples[i];
+        SAMPLE val = sampleData[i];
         if( val < 0 )   val = -val; // ABS
         if( val > max ) max = val;
         average += val;
     }
-    average = average / (double)numSamples;
-    printf("sample max amplitude = "PRINTF_S_FORMAT"\n", max );
-    printf("sample average = %lf\n", average );*/
+    average /= numSamples();
+    printf("Sample max amplitude = " PRINTF_S_FORMAT "\n", max );
+    printf("Sample average       = " PRINTF_S_FORMAT "\n", average );
 }
 
+void WpiEngine::write()
+{
+    // Write recorded data to a file.
+    {
+        FILE  *fid;
+        if( (fid = fopen("recorded.raw", "wb")) == NULL ) printf("Could not open file.");
+        else
+        {
+            fwrite( sampleData, NUM_CHANNELS * sizeof(SAMPLE), numFrames(), fid );
+            fclose( fid );
+            printf("Wrote data to 'recorded.raw'\n");
+        }
+    }
+}
 
 /* This routine will be called by the PortAudio engine when audio is needed.
 ** It may be called at interrupt level on some machines so don't do anything
 ** that could mess up the system like calling malloc() or free().
 */
-/*
-static int playCallback( const void *inputBuffer, void *outputBuffer,
+static int playCallbackWrapper( const void *inputBuffer, void *outputBuffer,
+                           unsigned long framesPerBuffer,
+                           const PaStreamCallbackTimeInfo* timeInfo,
+                           PaStreamCallbackFlags statusFlags,
+                           void *userData )
+{
+    return ((WpiEngine*) userData)->playCallback(inputBuffer, outputBuffer, framesPerBuffer, timeInfo, statusFlags);
+}
+
+int WpiEngine::playCallback( const void *inputBuffer, void *outputBuffer,
                          unsigned long framesPerBuffer,
                          const PaStreamCallbackTimeInfo* timeInfo,
-                         PaStreamCallbackFlags statusFlags,
-                         void *userData )
+                         PaStreamCallbackFlags statusFlags)
 {
-    paTestData *data = (paTestData*) userData;
-    SAMPLE *rptr = &data->recordedSamples[data->frameIndex * NUM_CHANNELS];
-    SAMPLE *wptr = (SAMPLE*)outputBuffer;
-    unsigned int i;
+    SAMPLE *rptr = & sampleData[frameIndex * NUM_CHANNELS];
+    SAMPLE *wptr = (SAMPLE*) outputBuffer;
+
     int finished;
-    unsigned int framesLeft = data->numFrames() - data->frameIndex;
+    unsigned int framesLeft = numFrames() - frameIndex;
 
     (void) inputBuffer; // Prevent unused variable warnings.
     (void) timeInfo;
     (void) statusFlags;
-    (void) userData;
 
     if( framesLeft < framesPerBuffer )
     {
         // final buffer...
-        for( i=0; i<framesLeft; i++ )
+        unsigned int i;
+        for( i = 0; i < framesLeft; i++ )
         {
             *wptr++ = *rptr++;  // left
             if( NUM_CHANNELS == 2 ) *wptr++ = *rptr++;  // right
@@ -195,104 +221,59 @@ static int playCallback( const void *inputBuffer, void *outputBuffer,
             *wptr++ = 0;  // left
             if( NUM_CHANNELS == 2 ) *wptr++ = 0;  // right
         }
-        data->frameIndex += framesLeft;
+        frameIndex += framesLeft;
         finished = paComplete;
     }
     else
     {
-        for( i=0; i<framesPerBuffer; i++ )
+        for( unsigned int i = 0; i < framesPerBuffer; i++ )
         {
             *wptr++ = *rptr++;  // left
             if( NUM_CHANNELS == 2 ) *wptr++ = *rptr++;  // right
         }
-        data->frameIndex += framesPerBuffer;
+        frameIndex += framesPerBuffer;
         finished = paContinue;
     }
     return finished;
 }
 
-int main ()
+void WpiEngine::play()
 {
-    PaStreamParameters  outputParameters;
-    PaStream*           stream;
-    paTestData          data;
-    int                 i;
-    int                 totalFrames;
-    int                 numSamples;
-    int                 numBytes;
-    SAMPLE              max, val;
-    double              average;
-
-    // Write recorded data to a file.
-#if WRITE_TO_FILE
-    {
-        FILE  *fid;
-        fid = fopen("recorded.raw", "wb");
-        if( fid == NULL )
-            printf("Could not open file.");
-        else
-        {
-            fwrite( data.recordedSamples, NUM_CHANNELS * sizeof(SAMPLE), totalFrames, fid );
-            fclose( fid );
-            printf("Wrote data to 'recorded.raw'\n");
-        }
-    }
-#endif
-
-    Pa_Sleep(3000);
-
-    // Playback recorded data.  --------------------------------------------
-    data.frameIndex = 0;
-
-    outputParameters.device = Pa_GetDefaultOutputDevice(); // default output device
-    if (outputParameters.device == paNoDevice) {
-        fprintf(stderr,"Error: No default output device.\n");
-        goto done;
-    }
-    outputParameters.channelCount = 2;                     // stereo output
-    outputParameters.sampleFormat =  PA_SAMPLE_TYPE;
-    outputParameters.suggestedLatency = Pa_GetDeviceInfo( outputParameters.device )->defaultLowOutputLatency;
-    outputParameters.hostApiSpecificStreamInfo = NULL;
+    // Set output parameters
+    delete outputParameters;
+    outputParameters = new PaStreamParameters;
+    if ( (outputParameters->device = Pa_GetDefaultOutputDevice()) == paNoDevice )  return printf("Error: No default output device.\n"), terminate();
+    outputParameters->channelCount = NUM_CHANNELS;
+    outputParameters->sampleFormat = PA_SAMPLE_TYPE;
+    outputParameters->suggestedLatency = Pa_GetDeviceInfo( outputParameters->device )->defaultLowOutputLatency;
+    outputParameters->hostApiSpecificStreamInfo = NULL;
 
     printf("\n=== Now playing back. ===\n"); fflush(stdout);
+    frameIndex = 0;
     err = Pa_OpenStream(
               &stream,
               NULL, // no input
-              &outputParameters,
+              outputParameters,
               SAMPLE_RATE,
               FRAMES_PER_BUFFER,
               paClipOff,      // we won't output out of range samples so don't bother clipping them
-              playCallback,
-              &data );
-    if( err != paNoError ) goto done;
+              playCallbackWrapper,
+              this );
+    checkPaError();
 
     if( stream )
     {
         err = Pa_StartStream( stream );
-        if( err != paNoError ) goto done;
+        checkPaError();
 
         printf("Waiting for playback to finish.\n"); fflush(stdout);
 
         while( ( err = Pa_IsStreamActive( stream ) ) == 1 ) Pa_Sleep(100);
-        if( err < 0 ) goto done;
+        checkPaError();
 
         err = Pa_CloseStream( stream );
-        if( err != paNoError ) goto done;
+        checkPaError();
 
         printf("Done.\n"); fflush(stdout);
     }
-
-done:
-    Pa_Terminate();
-    if( data.recordedSamples )       // Sure it is NULL or valid.
-        free( data.recordedSamples );
-    if( err != paNoError )
-    {
-        fprintf( stderr, "An error occured while using the portaudio stream\n" );
-        fprintf( stderr, "Error number: %d\n", err );
-        fprintf( stderr, "Error message: %s\n", Pa_GetErrorText( err ) );
-        err = 1;          // Always return 0 or 1, but no other return codes.
-    }
-    return err;
 }
-*/
