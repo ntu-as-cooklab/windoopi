@@ -29,7 +29,7 @@ include_directories("include")
 
 #file(GLOB WINDOOPI_SRC "src/*.cpp" "src/*.c")
 
-file(GLOB WINDOOPI_SRC "src/paex_sine.c")
+file(GLOB WINDOOPI_SRC "src/paex_record.c")
 add_executable(windoopi ${WINDOOPI_SRC})
 
 if (WIN32)

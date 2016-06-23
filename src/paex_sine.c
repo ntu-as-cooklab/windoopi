@@ -126,7 +126,7 @@ int main(void)
     err = Pa_Initialize();
     if( err != paNoError ) goto error;
 
-    outputParameters.device = 12; //Pa_GetDefaultOutputDevice(); /* default output device */
+    outputParameters.device = Pa_GetDefaultOutputDevice(); /* default output device */
     if (outputParameters.device == paNoDevice) {
       fprintf(stderr,"Error: No default output device.\n");
       goto error;

@@ -120,6 +120,9 @@ static int recordCallback( const void *inputBuffer, void *outputBuffer,
         finished = paContinue;
     }
 
+    static float cumulatedVolume = 0;
+    static int cumulatedFrames = 0;
+
     if( inputBuffer == NULL )
     {
         for( i=0; i<framesToCalc; i++ )
@@ -132,11 +135,27 @@ static int recordCallback( const void *inputBuffer, void *outputBuffer,
     {
         for( i=0; i<framesToCalc; i++ )
         {
-            *wptr++ = *rptr++;  /* left */
-            if( NUM_CHANNELS == 2 ) *wptr++ = *rptr++;  /* right */
+            cumulatedVolume += (*wptr++ = *rptr++);  /* left */
+            if( NUM_CHANNELS == 2 ) cumulatedVolume += (*wptr++ = *rptr++);  /* right */
         }
     }
     data->frameIndex += framesToCalc;
+
+    // Calculate and display current volume
+    cumulatedFrames += framesToCalc;
+    if (cumulatedFrames >= SAMPLE_RATE/100)
+    {
+        cumulatedVolume /= cumulatedFrames;
+        //printf ("%f\n", cumulatedVolume);
+        for (int i = 0; i<75; i++) printf (" ");
+        printf ("\r");
+        for (int i = 0; i<cumulatedVolume*250; i++) printf ("#");
+        printf ("\r");
+        fflush(stdout);
+        cumulatedVolume = 0;
+        cumulatedFrames = 0;
+    }
+
     return finished;
 }
 
@@ -207,8 +226,6 @@ int main(void)
     SAMPLE              max, val;
     double              average;
 
-    printf("patest_record.c\n"); fflush(stdout);
-
     data.maxFrameIndex = totalFrames = NUM_SECONDS * SAMPLE_RATE; /* Record for a few seconds. */
     data.frameIndex = 0;
     numSamples = totalFrames * NUM_CHANNELS;
@@ -250,10 +267,19 @@ int main(void)
     if( err != paNoError ) goto done;
     printf("\n=== Now recording!! Please speak into the microphone. ===\n"); fflush(stdout);
 
+    int lastFrameIndex = 0;
     while( ( err = Pa_IsStreamActive( stream ) ) == 1 )
     {
-        Pa_Sleep(1000);
-        printf("index = %d\n", data.frameIndex ); fflush(stdout);
+        Pa_Sleep(100);
+        /*float volume = 0.f;
+        int currFrameIndex = data.frameIndex;
+        for (int i = lastFrameIndex; i<currFrameIndex; i++) volume += data.recordedSamples[i];
+        volume /= currFrameIndex - lastFrameIndex;
+        lastFrameIndex = currFrameIndex;
+        //for (int i=0; i < volume*1e4; i++) printf("#");
+        //printf("\n");
+        printf("%f\n", volume );
+        fflush(stdout);*/
     }
     if( err < 0 ) goto done;
 
