@@ -6,9 +6,32 @@
 
 #include <portaudio.h>
 
+/* Select sample format. */
+#if 1
+    #define PA_SAMPLE_TYPE  paFloat32
+    typedef float SAMPLE;
+    #define SAMPLE_SILENCE  (0.0f)
+    #define PRINTF_S_FORMAT "%.8f"
+#elif 0
+    #define PA_SAMPLE_TYPE  paInt16
+    typedef short SAMPLE;
+    #define SAMPLE_SILENCE  (0)
+    #define PRINTF_S_FORMAT "%d"
+#elif 0
+#define PA_SAMPLE_TYPE  paInt8
+    typedef char SAMPLE;
+    #define SAMPLE_SILENCE  (0)
+    #define PRINTF_S_FORMAT "%d"
+#else
+    #define PA_SAMPLE_TYPE  paUInt8
+    typedef unsigned char SAMPLE;
+    #define SAMPLE_SILENCE  (128)
+    #define PRINTF_S_FORMAT "%d"
+#endif
+
 struct WpiEngine
 {
-    PaError err;
+    PaError err = paNoError;
 
     int numDevices;
 
@@ -17,9 +40,30 @@ struct WpiEngine
     void init();
     void terminate();
     void checkPaError();
+    void initSampleData();
 
     void printDevs();
     void printSupportedStandardSampleRates(const PaStreamParameters *inputParameters, const PaStreamParameters *outputParameters);
+
+    PaStreamParameters  inputParameters;
+    //PaStreamParameters  outputParameters    = NULL;
+    PaStream*           stream;
+
+    int                 frameIndex          = 0;
+    SAMPLE*             sampleData          = NULL;
+
+    int                 NUM_SECONDS         = 10;
+    int                 SAMPLE_RATE         = 44100;
+    int                 NUM_CHANNELS        = 2;    // stereo input
+    int                 FRAMES_PER_BUFFER   = 512;
+
+    inline int numFrames()       { return NUM_SECONDS * SAMPLE_RATE; }
+    inline int numSamples()      { return numFrames() * NUM_CHANNELS; }
+    inline int numBytes()        { return numSamples() * sizeof(SAMPLE); }
+
+    #define DITHER_FLAG     (paDitherOff)
+
+    void record();
 };
 
 #endif

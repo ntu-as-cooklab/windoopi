@@ -8,7 +8,8 @@ int main()
     WpiEngine wpiEngine;
 
     wpiEngine.init();
-    wpiEngine.printDevs();
+    //wpiEngine.printDevs();
+    wpiEngine.record();
     wpiEngine.terminate();
 
     return 0;
