@@ -27,9 +27,7 @@ include_directories("include")
 
 # Sources
 
-#file(GLOB WINDOOPI_SRC "src/*.cpp" "src/*.c")
-
-file(GLOB WINDOOPI_SRC "src/paex_record.c")
+file(GLOB WINDOOPI_SRC "src/*.cpp")
 add_executable(windoopi ${WINDOOPI_SRC})
 
 if (WIN32)
