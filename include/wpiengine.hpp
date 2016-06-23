@@ -53,6 +53,9 @@ struct WpiEngine
     unsigned int        SAMPLE_RATE         = 44100;
     unsigned int        FRAMES_PER_BUFFER   = 512;
 
+    SAMPLE*             wavetable           = NULL;
+    unsigned int        TABLE_SIZE          = 200;
+
     inline size_t numFrames()               { return NUM_SECONDS * SAMPLE_RATE; }
     inline size_t numSamples()              { return numFrames() * NUM_CHANNELS; }
     inline size_t numBytes()                { return numSamples() * sizeof(SAMPLE); }
@@ -67,6 +70,11 @@ struct WpiEngine
 
     void play();
     int playCallback(const void *inputBuffer, void *outputBuffer,
+                        unsigned long framesPerBuffer, const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags);
+
+    void initSineWavetable();
+    void playWave();
+    int playWaveCallback(const void *inputBuffer, void *outputBuffer,
                         unsigned long framesPerBuffer, const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags);
 };
 
