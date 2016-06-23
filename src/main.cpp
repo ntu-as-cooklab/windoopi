@@ -14,5 +14,5 @@ int main()
     wpiEngine.play();
     wpiEngine.terminate();
 
-    return 0;
+    return wpiEngine.err;
 }

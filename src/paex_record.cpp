@@ -197,40 +197,26 @@ int WpiEngine::playCallback( const void *inputBuffer, void *outputBuffer,
                          const PaStreamCallbackTimeInfo* timeInfo,
                          PaStreamCallbackFlags statusFlags)
 {
-    SAMPLE *rptr = & sampleData[frameIndex * NUM_CHANNELS];
-    SAMPLE *wptr = (SAMPLE*) outputBuffer;
-
-    int finished;
-    unsigned int framesLeft = numFrames() - frameIndex;
+    SAMPLE  *rptr           = & sampleData[frameIndex * NUM_CHANNELS];
+    SAMPLE  *wptr           = (SAMPLE*) outputBuffer;
+    int     finished;
 
     (void) inputBuffer; // Prevent unused variable warnings.
     (void) timeInfo;
     (void) statusFlags;
 
-    if( framesLeft < framesPerBuffer )
+    if( size_t framesLeft = numFrames() - frameIndex < framesPerBuffer )
     {
         // final buffer...
-        unsigned int i;
-        for( i = 0; i < framesLeft; i++ )
-        {
-            *wptr++ = *rptr++;  // left
-            if( NUM_CHANNELS == 2 ) *wptr++ = *rptr++;  // right
-        }
-        for( ; i<framesPerBuffer; i++ )
-        {
-            *wptr++ = 0;  // left
-            if( NUM_CHANNELS == 2 ) *wptr++ = 0;  // right
-        }
+        for( size_t i = 0; i < framesPerBuffer; i++ )
+            for (unsigned int n = 0; n < NUM_CHANNELS; n++) *wptr++ = i < framesLeft ? *rptr++ : 0;
         frameIndex += framesLeft;
         finished = paComplete;
     }
     else
     {
-        for( unsigned int i = 0; i < framesPerBuffer; i++ )
-        {
-            *wptr++ = *rptr++;  // left
-            if( NUM_CHANNELS == 2 ) *wptr++ = *rptr++;  // right
-        }
+        for( size_t i = 0; i < framesPerBuffer; i++ )
+            for (unsigned int n = 0; n < NUM_CHANNELS; n++) *wptr++ = *rptr++;
         frameIndex += framesPerBuffer;
         finished = paContinue;
     }

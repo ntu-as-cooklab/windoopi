@@ -43,15 +43,7 @@
  */
 #include <stdio.h>
 #include <math.h>
-#include "portaudio.h"
-
-#define NUM_SECONDS   (5)
-#define SAMPLE_RATE   (44100)
-#define FRAMES_PER_BUFFER  (256) // 64
-
-#ifndef M_PI
-#define M_PI  (3.14159265)
-#endif
+#include <portaudio.h>
 
 #define TABLE_SIZE   (200)
 typedef struct
@@ -104,7 +96,6 @@ static void StreamFinished( void* userData )
 }
 
 /*******************************************************************/
-int main(void);
 int main(void)
 {
     PaStreamParameters outputParameters;
@@ -112,7 +103,6 @@ int main(void)
     PaError err;
     paTestData data;
     int i;
-
 
     printf("PortAudio Test: output sine wave. SR = %d, BufSize = %d\n", SAMPLE_RATE, FRAMES_PER_BUFFER);
 
@@ -162,15 +152,4 @@ int main(void)
 
     err = Pa_CloseStream( stream );
     if( err != paNoError ) goto error;
-
-    Pa_Terminate();
-    printf("Test finished.\n");
-
-    return err;
-error:
-    Pa_Terminate();
-    fprintf( stderr, "An error occured while using the portaudio stream\n" );
-    fprintf( stderr, "Error number: %d\n", err );
-    fprintf( stderr, "Error message: %s\n", Pa_GetErrorText( err ) );
-    return err;
 }
