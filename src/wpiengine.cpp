@@ -6,20 +6,6 @@
 #include <math.h>
 #include <portaudio.h>
 
-WpiEngine::~WpiEngine()
-{
-    delete [] fftData;
-    fftData = NULL;
-}
-
-void WpiEngine::initFFTData()
-{
-    delete [] fftData;
-    fftData = NULL;
-    if ( ! (fftData = new SAMPLE[fftBins]) )  return printf("Could not allocate FFT data array.\n"), terminate();
-    memset (fftData, 0.f, fftBins * sizeof(SAMPLE));
-}
-
 static int windooCallbackWrapper( const void *inputBuffer, void *outputBuffer,
                            unsigned long framesPerBuffer,
                            const PaStreamCallbackTimeInfo* timeInfo,

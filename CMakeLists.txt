@@ -31,9 +31,9 @@ file(GLOB WINDOOPI_SRC "src/*.cpp")
 add_executable(windoopi ${WINDOOPI_SRC})
 
 if (WIN32)
-    target_link_libraries(windoopi portaudio.a winmm setupapi winpthread.a stdc++.a gcc.a winpthread.a)
+    target_link_libraries(windoopi fftw3f.a portaudio.a winmm setupapi winpthread.a stdc++.a gcc.a winpthread.a)
 endif (WIN32)
 
 if (UNIX)
-target_link_libraries(windoopi portaudio m)
+target_link_libraries(windoopi fftw3f portaudio m)
 endif (UNIX)

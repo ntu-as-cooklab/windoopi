@@ -301,8 +301,8 @@ struct FFTRealDouble_Mixed
         double cr2;
         int k;
         double ci5;
-        //double tr11 = 0.309016994374947;
-        //double ti11 = 0.951056516295154;
+        double tr11 = 0.309016994374947;
+        double ti11 = 0.951056516295154;
         //double tr12 = -0.809016994374947;
         //double ti12 = 0.587785252292473;
         int iw1 = offset;
@@ -316,9 +316,9 @@ struct FFTRealDouble_Mixed
             ci4 = cc[(k + 3 * l1) * ido] - cc[(k + 2 * l1) * ido];
             ch[5 * k * ido] = cc[k * ido] + cr2 + cr3;
             ch[ido - 1 + (5 * k + 1) * ido] = cc[k * ido] + 0.309016994374947 * cr2 + -0.809016994374947 * cr3;
-            ch[(5 * k + 2) * ido] = 0.951056516295154 * ci5 + 0.587785252292473 * ci4;
+            ch[(5 * k + 2) * ido] = ti11 * ci5 + 0.587785252292473 * ci4;
             ch[ido - 1 + (5 * k + 3) * ido] = cc[k * ido] + -0.809016994374947 * cr2 + 0.309016994374947 * cr3;
-            ch[(5 * k + 4) * ido] = 0.587785252292473 * ci5 - 0.951056516295154 * ci4;
+            ch[(5 * k + 4) * ido] = 0.587785252292473 * ci5 - ti11 * ci4;
         }
         if (ido == 1) {
             return;
@@ -348,10 +348,10 @@ struct FFTRealDouble_Mixed
                 double ti2 = cc[i + k * ido] + 0.309016994374947 * ci2 + -0.809016994374947 * ci3;
                 double tr3 = cc[i - 1 + k * ido] + -0.809016994374947 * cr2 + 0.309016994374947 * cr3;
                 double ti3 = cc[i + k * ido] + -0.809016994374947 * ci2 + 0.309016994374947 * ci3;
-                double tr5 = 0.951056516295154 * cr5 + 0.587785252292473 * cr4;
-                double ti5 = 0.951056516295154 * ci5 + 0.587785252292473 * ci4;
-                double tr4 = 0.587785252292473 * cr5 - 0.951056516295154 * cr4;
-                double ti4 = 0.587785252292473 * ci5 - 0.951056516295154 * ci4;
+                double tr5 = ti11 * cr5 + 0.587785252292473 * cr4;
+                double ti5 = ti11 * ci5 + 0.587785252292473 * ci4;
+                double tr4 = 0.587785252292473 * cr5 - ti11 * cr4;
+                double ti4 = 0.587785252292473 * ci5 - ti11 * ci4;
                 ch[i - 1 + (5 * k + 2) * ido] = tr2 + tr5;
                 ch[ic - 1 + (5 * k + 1) * ido] = tr2 - tr5;
                 ch[i + (5 * k + 2) * ido] = ti2 + ti5;
@@ -374,8 +374,8 @@ struct FFTRealDouble_Mixed
         double ci4;
         double ci5;
         int k;
-        //double tr11 = 0.309016994374947;
-        //double ti11 = 0.951056516295154;
+        double tr11 = 0.309016994374947;
+        double ti11 = 0.951056516295154;
         //double tr12 = -0.809016994374947;
         //double ti12 = 0.587785252292473;
         int iw1 = offset;
@@ -388,10 +388,10 @@ struct FFTRealDouble_Mixed
             tr2 = 2.0 * cc[ido - 1 + (5 * k + 1) * ido];
             tr3 = 2.0 * cc[ido - 1 + (5 * k + 3) * ido];
             ch[k * ido] = cc[5 * k * ido] + tr2 + tr3;
-            cr2 = cc[5 * k * ido] + 0.309016994374947 * tr2 + -0.809016994374947 * tr3;
-            cr3 = cc[5 * k * ido] + -0.809016994374947 * tr2 + 0.309016994374947 * tr3;
-            ci5 = 0.951056516295154 * ti5 + 0.587785252292473 * ti4;
-            ci4 = 0.587785252292473 * ti5 - 0.951056516295154 * ti4;
+            cr2 = cc[5 * k * ido] + tr11 * tr2 + -0.809016994374947 * tr3;
+            cr3 = cc[5 * k * ido] + -0.809016994374947 * tr2 + tr11 * tr3;
+            ci5 = ti11 * ti5 + 0.587785252292473 * ti4;
+            ci4 = 0.587785252292473 * ti5 - ti11 * ti4;
             ch[(k + l1) * ido] = cr2 - ci5;
             ch[(k + 2 * l1) * ido] = cr3 - ci4;
             ch[(k + 3 * l1) * ido] = cr3 + ci4;
@@ -413,14 +413,14 @@ struct FFTRealDouble_Mixed
                 tr3 = cc[i - 1 + (5 * k + 4) * ido] + cc[ic - 1 + (5 * k + 3) * ido];
                 ch[i - 1 + k * ido] = cc[i - 1 + 5 * k * ido] + tr2 + tr3;
                 ch[i + k * ido] = cc[i + 5 * k * ido] + ti2 + ti3;
-                cr2 = cc[i - 1 + 5 * k * ido] + 0.309016994374947 * tr2 + -0.809016994374947 * tr3;
-                double ci2 = cc[i + 5 * k * ido] + 0.309016994374947 * ti2 + -0.809016994374947 * ti3;
-                cr3 = cc[i - 1 + 5 * k * ido] + -0.809016994374947 * tr2 + 0.309016994374947 * tr3;
-                double ci3 = cc[i + 5 * k * ido] + -0.809016994374947 * ti2 + 0.309016994374947 * ti3;
-                double cr5 = 0.951056516295154 * tr5 + 0.587785252292473 * tr4;
-                ci5 = 0.951056516295154 * ti5 + 0.587785252292473 * ti4;
-                double cr4 = 0.587785252292473 * tr5 - 0.951056516295154 * tr4;
-                ci4 = 0.587785252292473 * ti5 - 0.951056516295154 * ti4;
+                cr2 = cc[i - 1 + 5 * k * ido] + tr11 * tr2 + -0.809016994374947 * tr3;
+                double ci2 = cc[i + 5 * k * ido] + tr11 * ti2 + -0.809016994374947 * ti3;
+                cr3 = cc[i - 1 + 5 * k * ido] + -0.809016994374947 * tr2 + tr11 * tr3;
+                double ci3 = cc[i + 5 * k * ido] + -0.809016994374947 * ti2 + tr11 * ti3;
+                double cr5 = ti11 * tr5 + 0.587785252292473 * tr4;
+                ci5 = ti11 * ti5 + 0.587785252292473 * ti4;
+                double cr4 = 0.587785252292473 * tr5 - ti11 * tr4;
+                ci4 = 0.587785252292473 * ti5 - ti11 * ti4;
                 double dr3 = cr3 - ci4;
                 double dr4 = cr3 + ci4;
                 double di3 = ci3 + cr4;
@@ -448,9 +448,8 @@ struct FFTRealDouble_Mixed
         int ik;
         int i;
         int jc;
-        //double twopi = 6.283185307179586;
         int iw1 = offset;
-        double arg = 6.283185307179586 / (double)ip;
+        double arg = (2.0 * M_PI) / (double)ip;
         double dcp = cos(arg);
         double dsp = sin(arg);
         int ipph = (ip + 1) / 2;
@@ -627,9 +626,8 @@ struct FFTRealDouble_Mixed
         int i;
         int jc;
         int j;
-        //double twopi = 6.283185307179586;
         int iw1 = offset;
-        double arg = 6.283185307179586 / (double)ip;
+        double arg = (2.0 * M_PI) / (double)ip;
         double dcp = cos(arg);
         double dsp = sin(arg);
         int nbd = (ido - 1) / 2;
@@ -934,7 +932,6 @@ struct FFTRealDouble_Mixed
     void rffti1(int n, double* wtable, int offset) {
         int i;
         int ntryh[4] = {4, 2, 3, 5};
-        //double twopi = 6.283185307179586;
         int ntry = 0;
         int nl = n;
         int nf = 0;
@@ -960,7 +957,7 @@ struct FFTRealDouble_Mixed
         } while (true);
         wtable[0 + 2 * n + offset] = n;
         wtable[1 + 2 * n + offset] = nf;
-        double argh = 6.283185307179586 / (double)n;
+        double argh = (2.0 * M_PI) / (double)n;
         int is = 0;
         int nfm1 = nf - 1;
         int l1 = 1;

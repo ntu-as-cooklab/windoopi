@@ -66,7 +66,7 @@ private:
                 maxVal = magnitude;
             }
         }
-        return ((double) (this.sampleRate * maxIndex)) / ((double) fftData.length);
+        return ((double) (sampleRate * maxIndex)) / ((double) fftData.length);
     }
 
 public:
