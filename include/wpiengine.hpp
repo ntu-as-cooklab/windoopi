@@ -16,4 +16,7 @@ struct WpiEngine : public PaEngine
     int         fftBins     = 32768;
 };
 
+class FFTRealDouble_Mixed;
+class FFTRealDouble;
+
 #endif
