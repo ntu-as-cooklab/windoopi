@@ -51,3 +51,64 @@ void WpiEngine::initSineWavetable()
     for( size_t i = 0; i < TABLE_SIZE; i++ )
         wavetable[i] =  (float) sin( ((double)i/(double)TABLE_SIZE) * M_PI * 2.f );
 }
+
+static int windooCallbackWrapper( const void *inputBuffer, void *outputBuffer,
+                           unsigned long framesPerBuffer,
+                           const PaStreamCallbackTimeInfo* timeInfo,
+                           PaStreamCallbackFlags statusFlags,
+                           void *userData )
+{
+    return ((WpiEngine*) userData)->windooCallback(inputBuffer, outputBuffer, framesPerBuffer, timeInfo, statusFlags);
+}
+
+int WpiEngine::windooCallback( const void *inputBuffer, void *outputBuffer,
+                           unsigned long framesPerBuffer,
+                           const PaStreamCallbackTimeInfo* timeInfo,
+                           PaStreamCallbackFlags statusFlags)
+{
+    const   SAMPLE          *rptr           = (const SAMPLE*) inputBuffer;
+            SAMPLE          *wptr           = & sampleData[frameIndex * NUM_CHANNELS];
+            size_t          framesToCalc;
+            int             finished;
+
+    // Prevent unused variable warnings
+    (void) outputBuffer;
+    (void) timeInfo;
+    (void) statusFlags;
+
+    if( size_t framesLeft = numFrames() - frameIndex < framesPerBuffer )
+    {
+        framesToCalc = framesLeft;
+        finished = paComplete;
+    }
+    else
+    {
+        framesToCalc = framesPerBuffer;
+        finished = paContinue;
+    }
+
+    static float cumulatedVolume = 0;
+    static size_t cumulatedFrames = 0;
+
+    for(size_t i = 0; i < framesToCalc; i++ )
+        for (unsigned int n = 0; n < NUM_CHANNELS; n++)
+            cumulatedVolume += (*wptr++ = inputBuffer ? *rptr++ : SAMPLE_SILENCE);
+    frameIndex += framesToCalc;
+
+    // Calculate and display current volume
+    cumulatedFrames += framesToCalc;
+    if (cumulatedFrames >= SAMPLE_RATE/100)
+    {
+        cumulatedVolume /= cumulatedFrames;
+        //printf ("%f\n", cumulatedVolume);
+        for (int i = 0; i<75; i++) printf (" ");
+        printf ("\r");
+        for (int i = 0; i<cumulatedVolume*250; i++) printf ("|");
+        printf ("\r");
+        fflush(stdout);
+        cumulatedVolume = 0;
+        cumulatedFrames = 0;
+    }
+
+    return finished;
+}

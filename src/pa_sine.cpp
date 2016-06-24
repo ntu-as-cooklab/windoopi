@@ -119,7 +119,7 @@ void WpiEngine::playWave()
     err = Pa_StartStream( stream );
     checkPaError();
 
-    printf("Play for %d seconds.\n", NUM_SECONDS );
+    printf( "Play for %d seconds.\n", NUM_SECONDS );
     Pa_Sleep( NUM_SECONDS * 1000 );
 
     err = Pa_StopStream( stream );

@@ -48,7 +48,7 @@ struct WpiEngine
     size_t              frameIndex          = 0;
     SAMPLE*             sampleData          = NULL;
 
-    unsigned int        NUM_SECONDS         = 3;
+    unsigned int        NUM_SECONDS         = 10;
     unsigned int        NUM_CHANNELS        = 2;    // stereo input
     unsigned int        SAMPLE_RATE         = 44100;
     unsigned int        FRAMES_PER_BUFFER   = 512;
@@ -59,23 +59,23 @@ struct WpiEngine
     inline size_t numFrames()               { return NUM_SECONDS * SAMPLE_RATE; }
     inline size_t numSamples()              { return numFrames() * NUM_CHANNELS; }
     inline size_t numBytes()                { return numSamples() * sizeof(SAMPLE); }
+    inline size_t sampleIndex()             { return frameIndex * NUM_CHANNELS; }
 
     #define DITHER_FLAG     (paDitherOff)
 
     void initSampleData();
     void record();
-    int recordCallback(const void *inputBuffer, void *outputBuffer,
-                        unsigned long framesPerBuffer, const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags);
+    int  recordCallback(const void *inputBuffer, void *outputBuffer, unsigned long framesPerBuffer, const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags);
     void write();
 
     void play();
-    int playCallback(const void *inputBuffer, void *outputBuffer,
-                        unsigned long framesPerBuffer, const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags);
+    int  playCallback(const void *inputBuffer, void *outputBuffer, unsigned long framesPerBuffer, const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags);
 
     void initSineWavetable();
     void playWave();
-    int playWaveCallback(const void *inputBuffer, void *outputBuffer,
-                        unsigned long framesPerBuffer, const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags);
+    int  playWaveCallback(const void *inputBuffer, void *outputBuffer, unsigned long framesPerBuffer, const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags);
+
+    int  windooCallback(const void *inputBuffer, void *outputBuffer, unsigned long framesPerBuffer, const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags);
 };
 
 #endif

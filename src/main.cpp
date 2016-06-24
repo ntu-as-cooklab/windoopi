@@ -10,7 +10,8 @@ int main()
     wpiEngine.init();
     //wpiEngine.printDevs();
     //wpiEngine.record();
-    //Pa_Sleep(2000);
+    //Pa_Sleep(3000);
+    //wpiEngine.play();
     wpiEngine.initSineWavetable();
     wpiEngine.playWave();
     wpiEngine.terminate();
