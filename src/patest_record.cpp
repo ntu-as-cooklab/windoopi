@@ -45,7 +45,7 @@
 #include <stdlib.h>
 #include <portaudio.h>
 
-#include "wpiengine.hpp"
+#include "patestengine.hpp"
 
 /* This routine will be called by the PortAudio engine when audio is needed.
 ** It may be called at interrupt level on some machines so don't do anything
@@ -57,10 +57,10 @@ static int recordCallbackWrapper( const void *inputBuffer, void *outputBuffer,
                            PaStreamCallbackFlags statusFlags,
                            void *userData )
 {
-    return ((WpiEngine*) userData)->recordCallback(inputBuffer, outputBuffer, framesPerBuffer, timeInfo, statusFlags);
+    return ((PaTestEngine*) userData)->recordCallback(inputBuffer, outputBuffer, framesPerBuffer, timeInfo, statusFlags);
 }
 
-int WpiEngine::recordCallback( const void *inputBuffer, void *outputBuffer,
+int PaTestEngine::recordCallback( const void *inputBuffer, void *outputBuffer,
                            unsigned long framesPerBuffer,
                            const PaStreamCallbackTimeInfo* timeInfo,
                            PaStreamCallbackFlags statusFlags)
@@ -75,7 +75,7 @@ int WpiEngine::recordCallback( const void *inputBuffer, void *outputBuffer,
     // Calculate and display current volume
     SAMPLE volume = 0;
     for( size_t i = 0; i < NUM_CHANNELS * framesPerBuffer; i++ )
-        volume += inputBuffer ? *in++ : SAMPLE_SILENCE;
+        volume += inputBuffer ? *in++ : 0;
     volume /= (NUM_CHANNELS * framesPerBuffer);
     //printf ("%f\n", volume);
     for (int i = 0; i<75; i++) printf (" ");
@@ -90,7 +90,7 @@ int WpiEngine::recordCallback( const void *inputBuffer, void *outputBuffer,
     return paContinue;
 }
 
-void WpiEngine::record()
+void PaTestEngine::record()
 {
     // Open output file
     if (filename)

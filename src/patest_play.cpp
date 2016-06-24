@@ -3,7 +3,7 @@
 #include <string.h>
 #include <portaudio.h>
 
-#include "wpiengine.hpp"
+#include "patestengine.hpp"
 
 /* This routine will be called by the PortAudio engine when audio is needed.
 ** It may be called at interrupt level on some machines so don't do anything
@@ -15,10 +15,10 @@ static int playCallbackWrapper( const void *inputBuffer, void *outputBuffer,
                            PaStreamCallbackFlags statusFlags,
                            void *userData )
 {
-    return ((WpiEngine*) userData)->playCallback(inputBuffer, outputBuffer, framesPerBuffer, timeInfo, statusFlags);
+    return ((PaTestEngine*) userData)->playCallback(inputBuffer, outputBuffer, framesPerBuffer, timeInfo, statusFlags);
 }
 
-int WpiEngine::playCallback( const void *inputBuffer, void *outputBuffer,
+int PaTestEngine::playCallback( const void *inputBuffer, void *outputBuffer,
                          unsigned long framesPerBuffer,
                          const PaStreamCallbackTimeInfo* timeInfo,
                          PaStreamCallbackFlags statusFlags)
@@ -52,7 +52,7 @@ int WpiEngine::playCallback( const void *inputBuffer, void *outputBuffer,
     return finish ? paComplete : paContinue;
 }
 
-void WpiEngine::play()
+void PaTestEngine::play()
 {
     // Open input file
     if (filename)

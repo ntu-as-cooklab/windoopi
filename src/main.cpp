@@ -10,12 +10,13 @@ int main()
 
     wpiEngine.init();
     //wpiEngine.printDevs();
-    std::string filename = "record.raw";
-    wpiEngine.filename = filename.c_str();
-    wpiEngine.record();
-    Pa_Sleep(2000);
-    wpiEngine.play();
-    //wpiEngine.genSineWavetable();
+    //std::string filename = "record.raw";
+    //wpiEngine.filename = filename.c_str();
+    //wpiEngine.record();
+    //Pa_Sleep(2000);
+    //wpiEngine.play();
+    wpiEngine.genSineWavetable();
+    wpiEngine.windoo();
     //wpiEngine.playWave();
     wpiEngine.terminate();
 

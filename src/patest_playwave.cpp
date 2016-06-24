@@ -44,7 +44,7 @@
 #include <stdio.h>
 #include <portaudio.h>
 
-#include "wpiengine.hpp"
+#include "patestengine.hpp"
 
 static int playWaveCallbackWrapper( const void *inputBuffer, void *outputBuffer,
                            unsigned long framesPerBuffer,
@@ -52,15 +52,15 @@ static int playWaveCallbackWrapper( const void *inputBuffer, void *outputBuffer,
                            PaStreamCallbackFlags statusFlags,
                            void *userData )
 {
-    return ((WpiEngine*) userData)->playWaveCallback(inputBuffer, outputBuffer, framesPerBuffer, timeInfo, statusFlags);
+    return ((PaTestEngine*) userData)->playWaveCallback(inputBuffer, outputBuffer, framesPerBuffer, timeInfo, statusFlags);
 }
 
-int WpiEngine::playWaveCallback( const void *inputBuffer, void *outputBuffer,
+int PaTestEngine::playWaveCallback( const void *inputBuffer, void *outputBuffer,
                             unsigned long framesPerBuffer,
                             const PaStreamCallbackTimeInfo* timeInfo,
                             PaStreamCallbackFlags statusFlags)
 {
-    float *out = (float*) outputBuffer;
+    SAMPLE *out = (SAMPLE*) outputBuffer;
 
     // Prevent unused variable warnings.
     (void) inputBuffer;
@@ -75,9 +75,9 @@ int WpiEngine::playWaveCallback( const void *inputBuffer, void *outputBuffer,
     return paContinue;
 }
 
-void WpiEngine::playWave()
+void PaTestEngine::playWave()
 {
-    printf("PortAudio Test: output sine wave. SR = %d, BufSize = %d\n", SAMPLE_RATE, FRAMES_PER_BUFFER);
+    printf("PortAudio Test: output sine wave.");
 
     // Set output parameters
     selectDefaultOutputParameters();
@@ -96,9 +96,8 @@ void WpiEngine::playWave()
     err = Pa_StartStream( stream );
     checkPaError();
 
-    printf( "Play for %d seconds.\n", NUM_SECONDS );
-    Pa_Sleep( NUM_SECONDS * 1000 );
-
+    // Wait for stream to finish
+    getchar();
     err = Pa_StopStream( stream );
     checkPaError();
 

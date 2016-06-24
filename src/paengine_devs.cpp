@@ -56,9 +56,9 @@
     #endif
 #endif
 
-#include "wpiengine.hpp"
+#include "paengine.hpp"
 
-void WpiEngine::printSupportedStandardSampleRates(const PaStreamParameters *inputParameters, const PaStreamParameters *outputParameters)
+void PaEngine::printSupportedStandardSampleRates(const PaStreamParameters *inputParameters, const PaStreamParameters *outputParameters)
 {
     static double standardSampleRates[] = {
         8000.0, 9600.0, 11025.0, 12000.0, 16000.0, 22050.0, 24000.0, 32000.0,
@@ -79,7 +79,7 @@ void WpiEngine::printSupportedStandardSampleRates(const PaStreamParameters *inpu
     printf( "\n" );
 }
 
-void WpiEngine::printDevs()
+void PaEngine::printDevs()
 {
     int                     numDevices                          = Pa_GetDeviceCount();
     const PaDeviceInfo      *deviceInfo;
