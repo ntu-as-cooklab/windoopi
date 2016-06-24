@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string>
 
 #include "wpiengine.hpp"
 
@@ -9,11 +10,13 @@ int main()
 
     wpiEngine.init();
     //wpiEngine.printDevs();
-    //wpiEngine.record();
-    //Pa_Sleep(3000);
-    //wpiEngine.play();
-    wpiEngine.initSineWavetable();
-    wpiEngine.playWave();
+    std::string filename = "record.raw";
+    wpiEngine.filename = filename.c_str();
+    wpiEngine.record();
+    Pa_Sleep(2000);
+    wpiEngine.play();
+    //wpiEngine.genSineWavetable();
+    //wpiEngine.playWave();
     wpiEngine.terminate();
 
     return wpiEngine.err;

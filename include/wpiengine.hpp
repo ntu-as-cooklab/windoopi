@@ -44,38 +44,42 @@ struct WpiEngine
     PaStreamParameters* inputParameters     = NULL;
     PaStreamParameters* outputParameters    = NULL;
     PaStream*           stream;
-
-    size_t              frameIndex          = 0;
-    SAMPLE*             sampleData          = NULL;
+    FILE*               fid                 = NULL;
+    const char*         filename            = NULL;
 
     unsigned int        NUM_SECONDS         = 10;
     unsigned int        NUM_CHANNELS        = 2;    // stereo input
     unsigned int        SAMPLE_RATE         = 44100;
-    unsigned int        FRAMES_PER_BUFFER   = 512;
+    unsigned int        FRAMES_PER_BUFFER   = 2048;
 
     SAMPLE*             wavetable           = NULL;
-    unsigned int        TABLE_SIZE          = 200;
 
     inline size_t numFrames()               { return NUM_SECONDS * SAMPLE_RATE; }
     inline size_t numSamples()              { return numFrames() * NUM_CHANNELS; }
     inline size_t numBytes()                { return numSamples() * sizeof(SAMPLE); }
-    inline size_t sampleIndex()             { return frameIndex * NUM_CHANNELS; }
 
     #define DITHER_FLAG     (paDitherOff)
 
-    void initSampleData();
+    void initFFTData();
+    void selectDefaultInputParameters();
+    void selectDefaultOutputParameters();
+
     void record();
     int  recordCallback(const void *inputBuffer, void *outputBuffer, unsigned long framesPerBuffer, const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags);
-    void write();
 
     void play();
     int  playCallback(const void *inputBuffer, void *outputBuffer, unsigned long framesPerBuffer, const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags);
 
-    void initSineWavetable();
+    void genSineWavetable(double frequency);
+    void genEmptyWavetable();
+
     void playWave();
     int  playWaveCallback(const void *inputBuffer, void *outputBuffer, unsigned long framesPerBuffer, const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags);
 
     int  windooCallback(const void *inputBuffer, void *outputBuffer, unsigned long framesPerBuffer, const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags);
+
+    SAMPLE*     fftData     = NULL;
+    int         fftBins     = 32768;
 };
 
 #endif

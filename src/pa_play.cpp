@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <portaudio.h>
 
 #include "wpiengine.hpp"
@@ -22,47 +23,48 @@ int WpiEngine::playCallback( const void *inputBuffer, void *outputBuffer,
                          const PaStreamCallbackTimeInfo* timeInfo,
                          PaStreamCallbackFlags statusFlags)
 {
-    const SAMPLE*   rptr                = & sampleData[sampleIndex()];
-    SAMPLE*         wptr                = (SAMPLE*) outputBuffer;
-    size_t          framesToProcess;
-    int             finished;
+
+    static  SAMPLE*     buffer  = new SAMPLE[NUM_CHANNELS * framesPerBuffer];
+            SAMPLE*     out     = (SAMPLE*) outputBuffer;
+            SAMPLE*     in      = buffer;
 
     // Prevent unused variable warnings.
     (void) inputBuffer;
     (void) timeInfo;
     (void) statusFlags;
 
-    if( size_t framesLeft = numFrames() - frameIndex < framesPerBuffer )
-    {
-        // final buffer...
-        framesToProcess = framesLeft;
-        finished = paComplete;
-    }
-    else
-    {
-        framesToProcess = framesPerBuffer;
-        finished = paContinue;
-    }
-    for( size_t i = 0; i < framesPerBuffer; i++ )
-        for (unsigned int n = 0; n < NUM_CHANNELS; n++) *wptr++ = i < framesToProcess ? *rptr++ : 0;
-    frameIndex += framesToProcess;
+    bool finish = fread( in, sizeof(SAMPLE), NUM_CHANNELS * framesPerBuffer, fid ) < NUM_CHANNELS * framesPerBuffer;
+    memcpy(out, in, sizeof(SAMPLE) * NUM_CHANNELS * framesPerBuffer);
 
-    return finished;
+    // Calculate and display current volume
+    SAMPLE volume = 0;
+    for( size_t i = 0; i < NUM_CHANNELS * framesPerBuffer; i++ )
+        volume += *in++;
+    volume /= (NUM_CHANNELS * framesPerBuffer);
+    for (int i = 0; i<75; i++) printf (" ");
+    printf ("\r");
+    for (int i = 0; i<volume*250; i++) printf ("|");
+    printf ("\r");
+    fflush(stdout);
+
+    if (finish) delete [] buffer;
+
+    return finish ? paComplete : paContinue;
 }
 
 void WpiEngine::play()
 {
+    // Open input file
+    if (filename)
+    {
+        if ((fid = fopen(filename, "rb"))) printf("Opened file '%s' for input.", filename);
+        else return printf("Could not open file '%s' for input.", filename), terminate();
+    }
+
     // Set output parameters
-    delete outputParameters;
-    outputParameters = new PaStreamParameters;
-    if ( (outputParameters->device = Pa_GetDefaultOutputDevice()) == paNoDevice )  return printf("Error: No default output device.\n"), terminate();
-    outputParameters->channelCount = NUM_CHANNELS;
-    outputParameters->sampleFormat = PA_SAMPLE_TYPE;
-    outputParameters->suggestedLatency = Pa_GetDeviceInfo( outputParameters->device )->defaultLowOutputLatency;
-    outputParameters->hostApiSpecificStreamInfo = NULL;
+    selectDefaultOutputParameters();
 
     printf("\n=== Now playing back. ===\n"); fflush(stdout);
-    frameIndex = 0;
     err = Pa_OpenStream(
               &stream,
               NULL, // no input
@@ -86,7 +88,10 @@ void WpiEngine::play()
 
         err = Pa_CloseStream( stream );
         checkPaError();
-
-        printf("Done.\n"); fflush(stdout);
     }
+
+    if (fid)
+        fclose( fid );
+
+    printf("Done.\n"); fflush(stdout);
 }

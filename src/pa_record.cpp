@@ -60,79 +60,46 @@ static int recordCallbackWrapper( const void *inputBuffer, void *outputBuffer,
     return ((WpiEngine*) userData)->recordCallback(inputBuffer, outputBuffer, framesPerBuffer, timeInfo, statusFlags);
 }
 
-/*
-int WpiEngine::input()
-{
-
-}
-*/
-
 int WpiEngine::recordCallback( const void *inputBuffer, void *outputBuffer,
                            unsigned long framesPerBuffer,
                            const PaStreamCallbackTimeInfo* timeInfo,
                            PaStreamCallbackFlags statusFlags)
 {
-    const SAMPLE*   rptr                = (const SAMPLE*) inputBuffer;
-    SAMPLE*         wptr                = & sampleData[sampleIndex()];
-    size_t          framesToProcess;
-    int             finished;
+    const SAMPLE* in = (const SAMPLE*) inputBuffer;
 
     // Prevent unused variable warnings
     (void) outputBuffer;
     (void) timeInfo;
     (void) statusFlags;
 
-    if( size_t framesLeft = numFrames() - frameIndex < framesPerBuffer )
-    {
-        // final buffer...
-        framesToProcess = framesLeft;
-        finished = paComplete;
-    }
-    else
-    {
-        framesToProcess = framesPerBuffer;
-        finished = paContinue;
-    }
-
-    static float cumulatedVolume = 0;
-    static size_t cumulatedFrames = 0;
-
-    for(size_t i = 0; i < framesToProcess; i++ )
-        for (unsigned int n = 0; n < NUM_CHANNELS; n++)
-            cumulatedVolume += (*wptr++ = inputBuffer ? *rptr++ : SAMPLE_SILENCE);
-    frameIndex += framesToProcess;
-
     // Calculate and display current volume
-    cumulatedFrames += framesToProcess;
-    if (cumulatedFrames >= SAMPLE_RATE/100)
-    {
-        cumulatedVolume /= cumulatedFrames;
-        //printf ("%f\n", cumulatedVolume);
-        for (int i = 0; i<75; i++) printf (" ");
-        printf ("\r");
-        for (int i = 0; i<cumulatedVolume*250; i++) printf ("|");
-        printf ("\r");
-        fflush(stdout);
-        cumulatedVolume = 0;
-        cumulatedFrames = 0;
-    }
+    SAMPLE volume = 0;
+    for( size_t i = 0; i < NUM_CHANNELS * framesPerBuffer; i++ )
+        volume += inputBuffer ? *in++ : SAMPLE_SILENCE;
+    volume /= (NUM_CHANNELS * framesPerBuffer);
+    //printf ("%f\n", volume);
+    for (int i = 0; i<75; i++) printf (" ");
+    printf ("\r");
+    for (int i = 0; i<volume*250; i++) printf ("|");
+    printf ("\r");
+    fflush(stdout);
 
-    return finished;
+    // Write to file
+    if (fid) fwrite( inputBuffer, sizeof(SAMPLE), NUM_CHANNELS * framesPerBuffer, fid );
+
+    return paContinue;
 }
 
 void WpiEngine::record()
 {
-    // Set input parameters
-    delete inputParameters;
-    inputParameters = new PaStreamParameters;
-    if ( (inputParameters->device = Pa_GetDefaultInputDevice()) == paNoDevice )  return printf("Error: No default input device.\n"), terminate();
-    inputParameters->channelCount = NUM_CHANNELS;
-    inputParameters->sampleFormat = PA_SAMPLE_TYPE;
-    inputParameters->suggestedLatency = Pa_GetDeviceInfo( inputParameters->device )->defaultLowInputLatency;
-    inputParameters->hostApiSpecificStreamInfo = NULL;
+    // Open output file
+    if (filename)
+        ((fid = fopen(filename, "wb"))) ?
+            printf("Opened file '%s' for output.", filename) :
+            printf("Could not open file '%s' for output.", filename);
 
-    // Initialize data
-    initSampleData();
+    // Set output parameters
+    selectDefaultInputParameters();
 
     // Record some audio. --------------------------------------------
     err = Pa_OpenStream(
@@ -151,38 +118,13 @@ void WpiEngine::record()
     printf("\n=== Now recording!! Please speak into the microphone. ===\n"); fflush(stdout);
 
     // Wait for stream to finish
-    while( ( err = Pa_IsStreamActive( stream ) ) == 1 )
-        Pa_Sleep(100);
-    if( err < 0 ) return terminate();
-
+    getchar();
     err = Pa_CloseStream( stream );
     checkPaError();
 
-    // Measure maximum peak amplitude.
-    SAMPLE max = 0, average = 0;
-    for(size_t i = 0; i < numSamples(); i++ )
+    if (fid)
     {
-        SAMPLE val = sampleData[i];
-        if( val < 0 )   val = -val; // ABS
-        if( val > max ) max = val;
-        average += val;
-    }
-    average /= numSamples();
-    printf("Sample max amplitude = " PRINTF_S_FORMAT "\n", max );
-    printf("Sample average       = " PRINTF_S_FORMAT "\n", average );
-}
-
-void WpiEngine::write()
-{
-    // Write recorded data to a file.
-    {
-        FILE  *fid;
-        if( (fid = fopen("recorded.raw", "wb")) == NULL ) printf("Could not open file.");
-        else
-        {
-            fwrite( sampleData, NUM_CHANNELS * sizeof(SAMPLE), numFrames(), fid );
-            fclose( fid );
-            printf("Wrote data to 'recorded.raw'\n");
-        }
+        fclose( fid );
+        printf("Wrote data to '%s'\n", filename);
     }
 }

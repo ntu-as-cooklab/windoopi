@@ -62,31 +62,17 @@ int WpiEngine::playWaveCallback( const void *inputBuffer, void *outputBuffer,
 {
     float *out = (float*) outputBuffer;
 
-    (void) timeInfo; // Prevent unused variable warnings.
-    (void) statusFlags;
+    // Prevent unused variable warnings.
     (void) inputBuffer;
+    (void) timeInfo;
+    (void) statusFlags;
 
-    static int left_phase  = 0;
-    static int right_phase = 0;
-
-    for( size_t i = 0; i < framesPerBuffer; i++ )
-    {
-        *out++ = wavetable[left_phase];      // left
-        *out++ = wavetable[right_phase];     // right
-        left_phase += 1;
-        if( left_phase >= TABLE_SIZE )  left_phase -= TABLE_SIZE;
-        right_phase += 3;                 // higher pitch so we can distinguish left and right.
-        if( right_phase >= TABLE_SIZE ) right_phase -= TABLE_SIZE;
-    }
+    static size_t frameIndex = 0;
+    for( size_t i = 0; i < framesPerBuffer * NUM_CHANNELS; i++ )
+        *out++ = wavetable[frameIndex];
+    if( ++frameIndex >= SAMPLE_RATE ) frameIndex -= SAMPLE_RATE;
 
     return paContinue;
-}
-
-// This routine is called by portaudio when playback is done.
-static void StreamFinished( void* userData )
-{
-    (void) userData; // Prevent unused variable warnings.
-    printf( "Stream Completed.\n");
 }
 
 void WpiEngine::playWave()
@@ -94,13 +80,7 @@ void WpiEngine::playWave()
     printf("PortAudio Test: output sine wave. SR = %d, BufSize = %d\n", SAMPLE_RATE, FRAMES_PER_BUFFER);
 
     // Set output parameters
-    delete outputParameters;
-    outputParameters = new PaStreamParameters;
-    if ( (outputParameters->device = Pa_GetDefaultOutputDevice()) == paNoDevice )  return printf("Error: No default output device.\n"), terminate();
-    outputParameters->channelCount = NUM_CHANNELS;
-    outputParameters->sampleFormat = PA_SAMPLE_TYPE;
-    outputParameters->suggestedLatency = Pa_GetDeviceInfo( outputParameters->device )->defaultLowOutputLatency;
-    outputParameters->hostApiSpecificStreamInfo = NULL;
+    selectDefaultOutputParameters();
 
     err = Pa_OpenStream(
               &stream,
@@ -111,9 +91,6 @@ void WpiEngine::playWave()
               paClipOff,        // we won't output out of range samples so don't bother clipping them
               playWaveCallbackWrapper,
               this );
-    checkPaError();
-
-    err = Pa_SetStreamFinishedCallback( stream, &StreamFinished );
     checkPaError();
 
     err = Pa_StartStream( stream );
