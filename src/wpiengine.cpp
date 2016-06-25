@@ -11,7 +11,7 @@ void WpiEngine::init()
 {
     PaEngine::init();
     FFTEngine::init();
-    printf( "Suggested window size: %f\n", Window_Size());
+    //printf( "Suggested window size: %f\n", Window_Size());
     printf( "Lowest detectable frequency: %f\n", Lowest_Detectable_Frequency());
     printf( "Frequency resolution: %f\n", resolution());
 }
