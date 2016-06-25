@@ -67,7 +67,6 @@ void PaEngine::genSineWavetable(double frequency)
 
 void PaEngine::genEmptyWavetable()
 {
-    // initialise sinusoidal wavetable
     delete [] wavetable;
     wavetable = NULL;
     if ( ! (wavetable = new SAMPLE[SAMPLE_RATE]) )  return printf("Could not allocate wavetable array.\n"), terminate();

@@ -5,10 +5,9 @@
 #include <stdlib.h>
 #include <portaudio.h>
 
-// Select sample format.
+#define DITHER_FLAG     (paDitherOff)
 #define PA_SAMPLE_TYPE  paFloat32
 typedef float SAMPLE;
-#define PRINTF_S_FORMAT "%.8f"
 
 struct PaEngine
 {
@@ -22,7 +21,7 @@ struct PaEngine
     void printDevs();
     void printSupportedStandardSampleRates(const PaStreamParameters *inputParameters, const PaStreamParameters *outputParameters);
 
-    unsigned int        NUM_CHANNELS        = 1;    // mono
+    unsigned int        NUM_CHANNELS        = 2;    // stereo
     unsigned int        SAMPLE_RATE         = 44100;
     unsigned int        FRAMES_PER_BUFFER   = 2048;
 
@@ -36,10 +35,8 @@ struct PaEngine
     void selectDefaultInputParameters();
     void selectDefaultOutputParameters();
 
-    void genSineWavetable(double frequency = 500); //1.5e4);
+    void genSineWavetable(double frequency);
     void genEmptyWavetable();
-
-    #define DITHER_FLAG     (paDitherOff)
 };
 
 #endif

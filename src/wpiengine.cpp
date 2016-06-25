@@ -26,7 +26,6 @@ int WpiEngine::windooCallback( const void *inputBuffer, void *outputBuffer,
                            const PaStreamCallbackTimeInfo* timeInfo,
                            PaStreamCallbackFlags statusFlags)
 {
-    const SAMPLE*   in      = (const SAMPLE*)   inputBuffer;
     SAMPLE*         out     = (SAMPLE*)         outputBuffer;
 
     // Prevent unused variable warnings
@@ -39,23 +38,13 @@ int WpiEngine::windooCallback( const void *inputBuffer, void *outputBuffer,
         *out++ = wavetable[frameIndex++];
     if( frameIndex > SAMPLE_RATE ) frameIndex -= SAMPLE_RATE;
 
-    // Calculate and display input volume
-    SAMPLE volume = 0;
-    for( size_t i = 0; i < NUM_CHANNELS * framesPerBuffer; i++ )
-        volume += inputBuffer ? *in++ : 0;
-    volume /= (NUM_CHANNELS * framesPerBuffer);
-    //printf ("%f\n", volume);
-    /*for (int i = 0; i<75; i++) printf (" ");
-    printf ("\r");
-    for (int i = 0; i<volume*250; i++) printf ("|");
-    printf ("\r");
-    fflush(stdout);*/
-
-    // Write to file
+    // FFT
     memcpy ( fftin, inputBuffer, sizeof(SAMPLE) * NUM_CHANNELS * framesPerBuffer );
     hanning();
     fft();
     getFrequency();
+
+    // Write to file
     if (fid) fwrite( inputBuffer, sizeof(SAMPLE), NUM_CHANNELS * framesPerBuffer, fid );
 
     return paContinue;
@@ -87,17 +76,17 @@ void WpiEngine::windoo()
 
     err = Pa_StartStream( stream );
     checkPaError();
-    printf("\n=== Stream started ===\n"); fflush(stdout);
+    printf("=== Stream started ===\n"); fflush(stdout);
 
     // Wait for stream to finish
     getchar();
     err = Pa_StopStream( stream );
     checkPaError();
-    printf("\n=== Stream stopped ===\n"); fflush(stdout);
+    printf("=== Stream stopped ===\n"); fflush(stdout);
 
     err = Pa_CloseStream( stream );
     checkPaError();
-    printf("\n=== Stream closed ===\n"); fflush(stdout);
+    printf("=== Stream closed ===\n"); fflush(stdout);
 
     if (fid)
     {

@@ -85,15 +85,15 @@ struct FFTRealFloat_Mixed
     {
         float cr2;
         int k;
-        //float taur = -0.5;
-        //float taui = 0.866025403784439;
+        float taur = -0.5;
+        float taui = 0.866025403784439;
         int iw1 = offset;
         int iw2 = iw1 + ido;
         for (k = 0; k < l1; ++k) {
             cr2 = cc[(k + l1) * ido] + cc[(k + 2 * l1) * ido];
             ch[3 * k * ido] = cc[k * ido] + cr2;
-            ch[(3 * k + 2) * ido] = 0.866025403784439 * (cc[(k + l1 * 2) * ido] - cc[(k + l1) * ido]);
-            ch[ido - 1 + (3 * k + 1) * ido] = cc[k * ido] + -0.5 * cr2;
+            ch[(3 * k + 2) * ido] = taui * (cc[(k + l1 * 2) * ido] - cc[(k + l1) * ido]);
+            ch[ido - 1 + (3 * k + 1) * ido] = cc[k * ido] + taur * cr2;
         }
         if (ido == 1) {
             return;
@@ -109,10 +109,10 @@ struct FFTRealFloat_Mixed
                 float ci2 = di2 + di3;
                 ch[i - 1 + 3 * k * ido] = cc[i - 1 + k * ido] + cr2;
                 ch[i + 3 * k * ido] = cc[i + k * ido] + ci2;
-                float tr2 = cc[i - 1 + k * ido] + -0.5 * cr2;
-                float ti2 = cc[i + k * ido] + -0.5 * ci2;
-                float tr3 = 0.866025403784439 * (di2 - di3);
-                float ti3 = 0.866025403784439 * (dr3 - dr2);
+                float tr2 = cc[i - 1 + k * ido] + taur * cr2;
+                float ti2 = cc[i + k * ido] + taur * ci2;
+                float tr3 = taui * (di2 - di3);
+                float ti3 = taui * (dr3 - dr2);
                 ch[i - 1 + (3 * k + 2) * ido] = tr2 + tr3;
                 ch[ic - 1 + (3 * k + 1) * ido] = tr2 - tr3;
                 ch[i + (3 * k + 2) * ido] = ti2 + ti3;
@@ -126,8 +126,8 @@ struct FFTRealFloat_Mixed
         float ci3;
         int k;
         float tr2;
-        //float taur = -0.5;
-        //float taui = 0.866025403784439;
+        float taur = -0.5;
+        float taui = 0.866025403784439;
         int iw1 = offset;
         int iw2 = iw1 + ido;
         for (k = 0; k < l1; ++k) {
@@ -145,13 +145,13 @@ struct FFTRealFloat_Mixed
             for (int i = 2; i < ido; i += 2) {
                 int ic = ido - i;
                 tr2 = cc[i - 1 + (3 * k + 2) * ido] + cc[ic - 1 + (3 * k + 1) * ido];
-                cr2 = cc[i - 1 + 3 * k * ido] + -0.5 * tr2;
+                cr2 = cc[i - 1 + 3 * k * ido] + taur * tr2;
                 ch[i - 1 + k * ido] = cc[i - 1 + 3 * k * ido] + tr2;
                 float ti2 = cc[i + (3 * k + 2) * ido] - cc[ic + (3 * k + 1) * ido];
                 float ci2 = cc[i + 3 * k * ido] + -0.5 * ti2;
                 ch[i + k * ido] = cc[i + 3 * k * ido] + ti2;
-                float cr3 = 0.866025403784439 * (cc[i - 1 + (3 * k + 2) * ido] - cc[ic - 1 + (3 * k + 1) * ido]);
-                ci3 = 0.866025403784439 * (cc[i + (3 * k + 2) * ido] + cc[ic + (3 * k + 1) * ido]);
+                float cr3 = taui * (cc[i - 1 + (3 * k + 2) * ido] - cc[ic - 1 + (3 * k + 1) * ido]);
+                ci3 = taui * (cc[i + (3 * k + 2) * ido] + cc[ic + (3 * k + 1) * ido]);
                 float dr2 = cr2 - ci3;
                 float dr3 = cr2 + ci3;
                 float di2 = ci2 + cr3;
@@ -169,7 +169,7 @@ struct FFTRealFloat_Mixed
         float tr1;
         int k;
         float tr2;
-        //float hsqt2 = 0.7071067811865475;
+        float hsqt2 = 0.7071067811865475;
         int iw1 = offset;
         int iw2 = offset + ido;
         int iw3 = iw2 + ido;
@@ -217,8 +217,8 @@ struct FFTRealFloat_Mixed
             }
         }
         for (k = 0; k < l1; ++k) {
-            ti1 = -0.7071067811865475 * (cc[ido - 1 + (k + l1) * ido] + cc[ido - 1 + (k + 3 * l1) * ido]);
-            tr1 = 0.7071067811865475 * (cc[ido - 1 + (k + l1) * ido] - cc[ido - 1 + (k + 3 * l1) * ido]);
+            ti1 = -hsqt2 * (cc[ido - 1 + (k + l1) * ido] + cc[ido - 1 + (k + 3 * l1) * ido]);
+            tr1 = hsqt2 * (cc[ido - 1 + (k + l1) * ido] - cc[ido - 1 + (k + 3 * l1) * ido]);
             ch[ido - 1 + 4 * k * ido] = tr1 + cc[ido - 1 + k * ido];
             ch[ido - 1 + (4 * k + 2) * ido] = cc[ido - 1 + k * ido] - tr1;
             ch[(4 * k + 1) * ido] = ti1 - cc[ido - 1 + (k + 2 * l1) * ido];
@@ -303,8 +303,8 @@ struct FFTRealFloat_Mixed
         float ci5;
         float tr11 = 0.309016994374947;
         float ti11 = 0.951056516295154;
-        //float tr12 = -0.809016994374947;
-        //float ti12 = 0.587785252292473;
+        float tr12 = -0.809016994374947;
+        float ti12 = 0.587785252292473;
         int iw1 = offset;
         int iw2 = iw1 + ido;
         int iw3 = iw2 + ido;
@@ -315,10 +315,10 @@ struct FFTRealFloat_Mixed
             cr3 = cc[(k + 3 * l1) * ido] + cc[(k + 2 * l1) * ido];
             ci4 = cc[(k + 3 * l1) * ido] - cc[(k + 2 * l1) * ido];
             ch[5 * k * ido] = cc[k * ido] + cr2 + cr3;
-            ch[ido - 1 + (5 * k + 1) * ido] = cc[k * ido] + 0.309016994374947 * cr2 + -0.809016994374947 * cr3;
-            ch[(5 * k + 2) * ido] = ti11 * ci5 + 0.587785252292473 * ci4;
-            ch[ido - 1 + (5 * k + 3) * ido] = cc[k * ido] + -0.809016994374947 * cr2 + 0.309016994374947 * cr3;
-            ch[(5 * k + 4) * ido] = 0.587785252292473 * ci5 - ti11 * ci4;
+            ch[ido - 1 + (5 * k + 1) * ido] = cc[k * ido] + tr11 * cr2 + tr12 * cr3;
+            ch[(5 * k + 2) * ido] = ti11 * ci5 + ti12 * ci4;
+            ch[ido - 1 + (5 * k + 3) * ido] = cc[k * ido] + tr12 * cr2 + tr11 * cr3;
+            ch[(5 * k + 4) * ido] = ti12 * ci5 - ti11 * ci4;
         }
         if (ido == 1) {
             return;
@@ -344,14 +344,14 @@ struct FFTRealFloat_Mixed
                 float ci3 = di3 + di4;
                 ch[i - 1 + 5 * k * ido] = cc[i - 1 + k * ido] + cr2 + cr3;
                 ch[i + 5 * k * ido] = cc[i + k * ido] + ci2 + ci3;
-                float tr2 = cc[i - 1 + k * ido] + 0.309016994374947 * cr2 + -0.809016994374947 * cr3;
-                float ti2 = cc[i + k * ido] + 0.309016994374947 * ci2 + -0.809016994374947 * ci3;
-                float tr3 = cc[i - 1 + k * ido] + -0.809016994374947 * cr2 + 0.309016994374947 * cr3;
-                float ti3 = cc[i + k * ido] + -0.809016994374947 * ci2 + 0.309016994374947 * ci3;
-                float tr5 = ti11 * cr5 + 0.587785252292473 * cr4;
-                float ti5 = ti11 * ci5 + 0.587785252292473 * ci4;
-                float tr4 = 0.587785252292473 * cr5 - ti11 * cr4;
-                float ti4 = 0.587785252292473 * ci5 - ti11 * ci4;
+                float tr2 = cc[i - 1 + k * ido] + tr11 * cr2 + tr12 * cr3;
+                float ti2 = cc[i + k * ido] + tr11 * ci2 + tr12 * ci3;
+                float tr3 = cc[i - 1 + k * ido] + tr12 * cr2 + tr11 * cr3;
+                float ti3 = cc[i + k * ido] + tr12 * ci2 + tr11 * ci3;
+                float tr5 = ti11 * cr5 + ti12 * cr4;
+                float ti5 = ti11 * ci5 + ti12 * ci4;
+                float tr4 = ti12 * cr5 - ti11 * cr4;
+                float ti4 = ti12 * ci5 - ti11 * ci4;
                 ch[i - 1 + (5 * k + 2) * ido] = tr2 + tr5;
                 ch[ic - 1 + (5 * k + 1) * ido] = tr2 - tr5;
                 ch[i + (5 * k + 2) * ido] = ti2 + ti5;
@@ -376,8 +376,8 @@ struct FFTRealFloat_Mixed
         int k;
         float tr11 = 0.309016994374947;
         float ti11 = 0.951056516295154;
-        //float tr12 = -0.809016994374947;
-        //float ti12 = 0.587785252292473;
+        float tr12 = -0.809016994374947;
+        float ti12 = 0.587785252292473;
         int iw1 = offset;
         int iw2 = iw1 + ido;
         int iw3 = iw2 + ido;
@@ -388,10 +388,10 @@ struct FFTRealFloat_Mixed
             tr2 = 2.0 * cc[ido - 1 + (5 * k + 1) * ido];
             tr3 = 2.0 * cc[ido - 1 + (5 * k + 3) * ido];
             ch[k * ido] = cc[5 * k * ido] + tr2 + tr3;
-            cr2 = cc[5 * k * ido] + tr11 * tr2 + -0.809016994374947 * tr3;
-            cr3 = cc[5 * k * ido] + -0.809016994374947 * tr2 + tr11 * tr3;
-            ci5 = ti11 * ti5 + 0.587785252292473 * ti4;
-            ci4 = 0.587785252292473 * ti5 - ti11 * ti4;
+            cr2 = cc[5 * k * ido] + tr11 * tr2 + tr12 * tr3;
+            cr3 = cc[5 * k * ido] + tr12 * tr2 + tr11 * tr3;
+            ci5 = ti11 * ti5 + ti12 * ti4;
+            ci4 = ti12 * ti5 - ti11 * ti4;
             ch[(k + l1) * ido] = cr2 - ci5;
             ch[(k + 2 * l1) * ido] = cr3 - ci4;
             ch[(k + 3 * l1) * ido] = cr3 + ci4;
@@ -413,14 +413,14 @@ struct FFTRealFloat_Mixed
                 tr3 = cc[i - 1 + (5 * k + 4) * ido] + cc[ic - 1 + (5 * k + 3) * ido];
                 ch[i - 1 + k * ido] = cc[i - 1 + 5 * k * ido] + tr2 + tr3;
                 ch[i + k * ido] = cc[i + 5 * k * ido] + ti2 + ti3;
-                cr2 = cc[i - 1 + 5 * k * ido] + tr11 * tr2 + -0.809016994374947 * tr3;
-                float ci2 = cc[i + 5 * k * ido] + tr11 * ti2 + -0.809016994374947 * ti3;
-                cr3 = cc[i - 1 + 5 * k * ido] + -0.809016994374947 * tr2 + tr11 * tr3;
-                float ci3 = cc[i + 5 * k * ido] + -0.809016994374947 * ti2 + tr11 * ti3;
-                float cr5 = ti11 * tr5 + 0.587785252292473 * tr4;
-                ci5 = ti11 * ti5 + 0.587785252292473 * ti4;
-                float cr4 = 0.587785252292473 * tr5 - ti11 * tr4;
-                ci4 = 0.587785252292473 * ti5 - ti11 * ti4;
+                cr2 = cc[i - 1 + 5 * k * ido] + tr11 * tr2 + tr12 * tr3;
+                float ci2 = cc[i + 5 * k * ido] + tr11 * ti2 + tr12 * ti3;
+                cr3 = cc[i - 1 + 5 * k * ido] + tr12 * tr2 + tr11 * tr3;
+                float ci3 = cc[i + 5 * k * ido] + tr12 * ti2 + tr11 * ti3;
+                float cr5 = ti11 * tr5 + ti12 * tr4;
+                ci5 = ti11 * ti5 + ti12 * ti4;
+                float cr4 = ti12 * tr5 - ti11 * tr4;
+                ci4 = ti12 * ti5 - ti11 * ti4;
                 float dr3 = cr3 - ci4;
                 float dr4 = cr3 + ci4;
                 float di3 = ci3 + cr4;
@@ -915,21 +915,22 @@ struct FFTRealFloat_Mixed
         delete [] ch;
     }
 
-    void rfftf(int n, float* r, float* wtable) {
-        if (n == 1) {
+    void rfftf(int n, float* r, float* wtable)
+    {
+        if (n == 1)
             return;
-        }
         rfftf1(n, r, wtable, 0);
     }
 
-    void rfftb(int n, float* r, float* wtable) {
-        if (n == 1) {
+    void rfftb(int n, float* r, float* wtable)
+    {
+        if (n == 1)
             return;
-        }
         rfftb1(n, r, wtable, 0);
     }
 
-    void rffti1(int n, float* wtable, int offset) {
+    void rffti1(int n, float* wtable, int offset)
+    {
         int i;
         int ntryh[4] = {4, 2, 3, 5};
         int ntry = 0;
@@ -985,10 +986,10 @@ struct FFTRealFloat_Mixed
         }
     }
 
-    void rffti(int n, float* wtable) {
-        if (n == 1) {
+    void rffti(int n, float* wtable)
+    {
+        if (n == 1)
             return;
-        }
         rffti1(n, wtable, 0);
     }
 };
