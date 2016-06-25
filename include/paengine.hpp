@@ -36,7 +36,7 @@ struct PaEngine
     void selectDefaultInputParameters();
     void selectDefaultOutputParameters();
 
-    void genSineWavetable(double frequency = 1.5e4);
+    void genSineWavetable(double frequency = 500); //1.5e4);
     void genEmptyWavetable();
 
     #define DITHER_FLAG     (paDitherOff)

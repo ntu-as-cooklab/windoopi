@@ -6,14 +6,16 @@
 struct FFTEngine
 {
     int N = 2048;
-    int fftBins = 32768;
-    fftwf_plan plan;
+    inline int N_bins() { return N & 1 ? (N + 1) / 2 : N/2 + 1; }
 
-    float*          in;
-    fftwf_complex*  out;
+    fftwf_plan      fftplan;
+    float*          fftin;
+    fftwf_complex*  fftout;
 
-    void execute();
+    void hanning();
+    void fft();
     void init();
+    void getFrequency();
     ~FFTEngine();
 };
 

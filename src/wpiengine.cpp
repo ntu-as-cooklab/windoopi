@@ -6,6 +6,12 @@
 #include <math.h>
 #include <portaudio.h>
 
+void WpiEngine::init()
+{
+    PaEngine::init();
+    FFTEngine::init();
+}
+
 static int windooCallbackWrapper( const void *inputBuffer, void *outputBuffer,
                            unsigned long framesPerBuffer,
                            const PaStreamCallbackTimeInfo* timeInfo,
@@ -30,8 +36,8 @@ int WpiEngine::windooCallback( const void *inputBuffer, void *outputBuffer,
     // Play Sine wave
     static size_t frameIndex = 0;
     for( size_t i = 0; i < framesPerBuffer * NUM_CHANNELS; i++ )
-        *out++ = wavetable[frameIndex];
-    if( ++frameIndex >= SAMPLE_RATE ) frameIndex -= SAMPLE_RATE;
+        *out++ = wavetable[frameIndex++];
+    if( frameIndex > SAMPLE_RATE ) frameIndex -= SAMPLE_RATE;
 
     // Calculate and display input volume
     SAMPLE volume = 0;
@@ -39,13 +45,17 @@ int WpiEngine::windooCallback( const void *inputBuffer, void *outputBuffer,
         volume += inputBuffer ? *in++ : 0;
     volume /= (NUM_CHANNELS * framesPerBuffer);
     //printf ("%f\n", volume);
-    for (int i = 0; i<75; i++) printf (" ");
+    /*for (int i = 0; i<75; i++) printf (" ");
     printf ("\r");
     for (int i = 0; i<volume*250; i++) printf ("|");
     printf ("\r");
-    fflush(stdout);
+    fflush(stdout);*/
 
     // Write to file
+    memcpy ( fftin, inputBuffer, sizeof(SAMPLE) * NUM_CHANNELS * framesPerBuffer );
+    hanning();
+    fft();
+    getFrequency();
     if (fid) fwrite( inputBuffer, sizeof(SAMPLE), NUM_CHANNELS * framesPerBuffer, fid );
 
     return paContinue;
