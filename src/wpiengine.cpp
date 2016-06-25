@@ -94,3 +94,22 @@ void WpiEngine::windoo()
         printf("Wrote data to '%s'\n", filename);
     }
 }
+
+inline float magnitude(fftwf_complex z)
+{
+    return sqrt(z[0]*z[0] + z[1]*z[1]);
+}
+
+void WpiEngine::getFrequency()
+{
+    int bin = 0;
+    float max = 0.f;
+    for (int i = 0; i < N_bins(); i++)
+        if ( magnitude(fftout[i]) > max && resolution() * i < 2e4)
+        {
+            bin = i;
+            max = magnitude(fftout[i]);
+        }
+    float freq = resolution() * bin;
+    printf ("Bin: %4d,\tFreq: %12.6f,\tMax: %12.6f\n", bin, freq, max);
+}

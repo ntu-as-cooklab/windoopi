@@ -33,24 +33,3 @@ void FFTEngine::hanning()
     for (int i=0; i<N; i++)
         fftin[i] *= 0.5f * ( 1 - cos( 2*M_PI*i/(N-1) ) );
 }
-
-inline float magnitude(fftwf_complex z)
-{
-    return sqrt(z[0]*z[0] + z[1]*z[1]);
-}
-
-void FFTEngine::getFrequency()
-{
-    float resolution = 44100.f / N;
-
-    int bin = 0;
-    float max = 0.f;
-    for (int i = 0; i < N_bins(); i++)
-        if (magnitude(fftout[i]) > max && resolution * i < 1.2e4)
-        {
-            bin = i;
-            max = magnitude(fftout[i]);
-        }
-    float freq = resolution * bin;
-    printf ("Bin: %4d,\tFreq: %12.6f,\tMax: %12.6f\n", bin, freq, max);
-}

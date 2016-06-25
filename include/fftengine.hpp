@@ -5,7 +5,7 @@
 
 struct FFTEngine
 {
-    int N = 2048;
+    int N;
     inline int N_bins() { return N & 1 ? (N + 1) / 2 : N/2 + 1; }
 
     fftwf_plan      fftplan;
