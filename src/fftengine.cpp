@@ -1,14 +1,18 @@
 #include "fftengine.hpp"
 
+#ifndef M_PI
+    #define M_PI 3.14159265358979
+#endif
 #include <math.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "FFTRealFloat.hpp"
 
 void FFTEngine::init()
 {
     fftin   = (float*)          fftwf_malloc(sizeof(float) * N);
-    fftout  = (fftwf_complex*)  fftwf_malloc(sizeof(fftwf_complex) * N);
+    fftout  = (fftwf_complex*)  malloc(sizeof(fftwf_complex) * N);
     fftplan = fftwf_plan_dft_r2c_1d(N, fftin, fftout, FFTW_ESTIMATE);
 }
 

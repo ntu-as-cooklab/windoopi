@@ -1,12 +1,15 @@
 #include "paengine.hpp"
 
+#ifndef M_PI
+    #define M_PI 3.14159265358979
+#endif
 #include <math.h>
 #include <string.h>
 
 void PaEngine::init()
 {
     err = Pa_Initialize();
-    printf( "\n%s\nversion number %d\n\n", Pa_GetVersionText(), Pa_GetVersion());
+    printf( "%s version number %d\n\n", Pa_GetVersionText(), Pa_GetVersion());
     checkPaError();
 }
 

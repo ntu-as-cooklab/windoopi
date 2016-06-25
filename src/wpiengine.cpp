@@ -3,17 +3,25 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifndef M_PI
+    #define M_PI 3.14159265358979
+#endif
 #include <math.h>
 #include <portaudio.h>
 #include <algorithm>
 
 void WpiEngine::init()
 {
+    printf( "\n========== Windoo Testing ==========\n\n");
     PaEngine::init();
     FFTEngine::init();
     //printf( "Suggested window size: %f\n", Window_Size());
+    printf( "Number of channels:          %d\n", NUM_CHANNELS);
+    printf( "Sample rate:                 %d\n", SAMPLE_RATE);
+    printf( "FFT size:                    %d\n", N);
+    printf( "Frequency resolution:        %f\n", resolution());
     printf( "Lowest detectable frequency: %f\n", Lowest_Detectable_Frequency());
-    printf( "Frequency resolution: %f\n", resolution());
+    printf( "Output frequency:            %f\n", OUTPUT_FREQUENCY);
 }
 
 static int windooCallbackWrapper( const void *inputBuffer, void *outputBuffer,
@@ -41,7 +49,7 @@ int WpiEngine::windooCallback( const void *inputBuffer, void *outputBuffer,
     static size_t frameIndex = 0;
     for( size_t i = 0; i < framesPerBuffer; i++ )
         *out++ = wavetable[frameIndex++];
-    if( frameIndex > SAMPLE_RATE ) frameIndex -= SAMPLE_RATE;
+    if( frameIndex >= SAMPLE_RATE ) frameIndex -= SAMPLE_RATE;
 
     // FFT
     memcpy ( in, inputBuffer, sizeof(SAMPLE) * framesPerBuffer );
@@ -112,10 +120,10 @@ inline float magnitude(fftwf_complex z)
 
 void WpiEngine::getFrequency()
 {
-    const int A = 20;
+    const int A = 10;
     int bin[A];
     float max[A];
-    for (int a = 0; a < 3; a++)
+    for (int a = 0; a < A; a++)
     {
         bin[a] = 0;
         max[a] = 0.f;
@@ -135,11 +143,11 @@ void WpiEngine::getFrequency()
                 break;
             }
 
+    printf ("---------- Frequency strengths ----------\n");
     for (int a = 0; a < A; a++)
     {
         float freq = resolution() * bin[a];
-        printf ("[%2d]\tBin: %4d,\tFreq: %12.6f,\tMax: %12.6f\n", a+1, bin[a], freq, max[a]);
+        printf ("[%2d]\tFreq: %12.6f,\tAmp: %12.6f\n", a+1, freq, max[a]);
     }
-    printf("\n");
-
+    printf( "\nPress ENTER to stop stream\n\n");
 }

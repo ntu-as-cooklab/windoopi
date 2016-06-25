@@ -1,6 +1,9 @@
 #ifndef FFTREALFLOAT_MIXED_HPP
 #define FFTREALFLOAT_MIXED_HPP
 
+#ifndef M_PI
+    #define M_PI 3.14159265358979
+#endif
 #include <math.h>
 #include <string.h>
 

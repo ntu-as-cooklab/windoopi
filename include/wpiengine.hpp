@@ -6,13 +6,16 @@
 
 struct WpiEngine : public PaEngine, public FFTEngine
 {
+    float OUTPUT_FREQUENCY;
+
     WpiEngine()
     {
         NUM_CHANNELS        = 1;        // mono
         SAMPLE_RATE         = 44100;
-        FRAMES_PER_BUFFER   = 512;
-        N                   = 2048;
-        genSineWavetable (1.5e4);
+        FRAMES_PER_BUFFER   = 1024;
+        N                   = 8192;
+        OUTPUT_FREQUENCY    = 15e3;
+        genSineWavetable (OUTPUT_FREQUENCY);
     }
     float F_max()  { return (float) SAMPLE_RATE / 2.f; }
     float resolution()  { return (float) SAMPLE_RATE / N; }
