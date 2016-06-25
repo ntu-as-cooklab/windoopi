@@ -23,9 +23,9 @@ void FFTEngine::fft()
 {
     static FFTRealFloat fftRealFloat(N);
 
-    fftRealFloat.ft(fftin, fftout);
+    //fftRealFloat.ft(fftin, fftout);
 
-    //fftwf_execute(fftplan);
+    fftwf_execute(fftplan);
 }
 
 void FFTEngine::hanning()

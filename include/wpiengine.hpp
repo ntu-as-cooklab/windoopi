@@ -10,11 +10,14 @@ struct WpiEngine : public PaEngine, public FFTEngine
     {
         NUM_CHANNELS        = 1;        // mono
         SAMPLE_RATE         = 44100;
-        FRAMES_PER_BUFFER   = 2048;
-        N                   = 2048;
+        FRAMES_PER_BUFFER   = 512;
+        N                   = 32768;
         genSineWavetable (1.5e4);
     }
+    float F_max()  { return SAMPLE_RATE / 2.f; }
     float resolution()  { return SAMPLE_RATE / N; }
+    float Lowest_Detectable_Frequency() { return 5 * SAMPLE_RATE / N; }
+    float Window_Size() { return 5 * SAMPLE_RATE / 100.f; }
 
     void init();
     void windoo();

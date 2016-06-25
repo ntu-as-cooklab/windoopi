@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <portaudio.h>
 
-#define DITHER_FLAG     (paDitherOff)
+//#define DITHER_FLAG     (paDitherOff)
 #define PA_SAMPLE_TYPE  paFloat32
 typedef float SAMPLE;
 

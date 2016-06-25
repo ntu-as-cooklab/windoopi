@@ -5,11 +5,15 @@
 #include <string.h>
 #include <math.h>
 #include <portaudio.h>
+#include <algorithm>
 
 void WpiEngine::init()
 {
     PaEngine::init();
     FFTEngine::init();
+    printf( "Suggested window size: %f\n", Window_Size());
+    printf( "Lowest detectable frequency: %f\n", Lowest_Detectable_Frequency());
+    printf( "Frequency resolution: %f\n", resolution());
 }
 
 static int windooCallbackWrapper( const void *inputBuffer, void *outputBuffer,
@@ -26,6 +30,7 @@ int WpiEngine::windooCallback( const void *inputBuffer, void *outputBuffer,
                            const PaStreamCallbackTimeInfo* timeInfo,
                            PaStreamCallbackFlags statusFlags)
 {
+    static SAMPLE*  in      = (SAMPLE*)         fftin;
     SAMPLE*         out     = (SAMPLE*)         outputBuffer;
 
     // Prevent unused variable warnings
@@ -34,18 +39,23 @@ int WpiEngine::windooCallback( const void *inputBuffer, void *outputBuffer,
 
     // Play Sine wave
     static size_t frameIndex = 0;
-    for( size_t i = 0; i < framesPerBuffer * NUM_CHANNELS; i++ )
+    for( size_t i = 0; i < framesPerBuffer; i++ )
         *out++ = wavetable[frameIndex++];
     if( frameIndex > SAMPLE_RATE ) frameIndex -= SAMPLE_RATE;
 
     // FFT
-    memcpy ( fftin, inputBuffer, sizeof(SAMPLE) * NUM_CHANNELS * framesPerBuffer );
-    hanning();
-    fft();
-    getFrequency();
+    memcpy ( in, inputBuffer, sizeof(SAMPLE) * framesPerBuffer );
+    in += framesPerBuffer;
+    if (in - fftin > N)
+    {
+        hanning();
+        fft();
+        getFrequency();
+        in = fftin;
+    }
 
     // Write to file
-    if (fid) fwrite( inputBuffer, sizeof(SAMPLE), NUM_CHANNELS * framesPerBuffer, fid );
+    if (fid) fwrite( inputBuffer, sizeof(SAMPLE), framesPerBuffer, fid );
 
     return paContinue;
 }
@@ -102,14 +112,34 @@ inline float magnitude(fftwf_complex z)
 
 void WpiEngine::getFrequency()
 {
-    int bin = 0;
-    float max = 0.f;
+    const int A = 20;
+    int bin[A];
+    float max[A];
+    for (int a = 0; a < 3; a++)
+    {
+        bin[a] = 0;
+        max[a] = 0.f;
+    }
+
     for (int i = 0; i < N_bins(); i++)
-        if ( magnitude(fftout[i]) > max && resolution() * i < 2e4)
-        {
-            bin = i;
-            max = magnitude(fftout[i]);
-        }
-    float freq = resolution() * bin;
-    printf ("Bin: %4d,\tFreq: %12.6f,\tMax: %12.6f\n", bin, freq, max);
+        for (int a = 0; a < A; a++)
+            if ( magnitude(fftout[i]) > max[a] && resolution() * i < 2e4)
+            {
+                if (a+1 < A)
+                {
+                    bin[a+1] = bin[a];
+                    max[a+1] = max[a];
+                }
+                bin[a] = i;
+                max[a] = magnitude(fftout[i]);
+                break;
+            }
+
+    for (int a = 0; a < A; a++)
+    {
+        float freq = resolution() * bin[a];
+        printf ("[%2d]\tBin: %4d,\tFreq: %12.6f,\tMax: %12.6f\n", a+1, bin[a], freq, max[a]);
+    }
+    printf("\n");
+
 }
