@@ -18,10 +18,8 @@ void PaEngine::terminate()
     err = Pa_Terminate();
     delete inputParameters;
     delete outputParameters;
-    delete [] wavetable;
     inputParameters     = NULL;
     outputParameters    = NULL;
-    wavetable           = NULL;
 }
 
 void PaEngine::checkPaError()
@@ -56,22 +54,4 @@ void PaEngine::selectDefaultOutputParameters()
     outputParameters->sampleFormat = PA_SAMPLE_TYPE;
     outputParameters->suggestedLatency = Pa_GetDeviceInfo( outputParameters->device )->defaultLowOutputLatency;
     outputParameters->hostApiSpecificStreamInfo = NULL;
-}
-
-void PaEngine::genSineWavetable(double frequency)
-{
-    // initialise sinusoidal wavetable
-    delete [] wavetable;
-    wavetable = NULL;
-    if ( ! (wavetable = new SAMPLE[SAMPLE_RATE]) )  return printf("Could not allocate wavetable array.\n"), terminate();
-    for( size_t i = 0; i < SAMPLE_RATE; i++ )
-        wavetable[i] =  (float) sin( 2.f * M_PI * ((double)i) / ((double)SAMPLE_RATE) * frequency );
-}
-
-void PaEngine::genEmptyWavetable()
-{
-    delete [] wavetable;
-    wavetable = NULL;
-    if ( ! (wavetable = new SAMPLE[SAMPLE_RATE]) )  return printf("Could not allocate wavetable array.\n"), terminate();
-    memset (wavetable, 0.f, SAMPLE_RATE * sizeof(SAMPLE));
 }

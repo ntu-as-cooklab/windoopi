@@ -11,29 +11,31 @@
 
 void FFTEngine::init()
 {
-    fftin   = (float*)          fftwf_malloc(sizeof(float) * N);
+    fftin   = (short*)          malloc(sizeof(short) * N);
+    fftdata = (float*)          malloc(sizeof(float) * N);
     fftout  = (fftwf_complex*)  malloc(sizeof(fftwf_complex) * N);
-    fftplan = fftwf_plan_dft_r2c_1d(N, fftin, fftout, FFTW_ESTIMATE);
+    fftplan = fftwf_plan_dft_r2c_1d(N, fftdata, fftout, FFTW_ESTIMATE);
 }
 
 FFTEngine::~FFTEngine()
 {
     fftwf_destroy_plan(fftplan);
-    fftwf_free(fftin);
-    fftwf_free(fftout);
+
+    //free(fftin);
+    //free(fftout);
 }
 
 void FFTEngine::fft()
 {
     static FFTRealFloat fftRealFloat(N);
 
-    //fftRealFloat.ft(fftin, fftout);
+    fftRealFloat.ft(fftdata, fftout);
 
-    fftwf_execute(fftplan);
+    //fftwf_execute(fftplan);
 }
 
 void FFTEngine::hanning()
 {
     for (int i=0; i<N; i++)
-        fftin[i] *= 0.5f * ( 1 - cos( 2*M_PI*i/(N-1) ) );
+        fftdata[i] = 0.5f * ( 1 - cos( 2*M_PI*i/(N-1) ) ) * fftin[i];
 }

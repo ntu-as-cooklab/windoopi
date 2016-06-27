@@ -9,7 +9,8 @@ struct FFTEngine
     inline int N_bins() { return N & 1 ? (N + 1) / 2 : N/2 + 1; }
 
     fftwf_plan      fftplan;
-    float*          fftin;
+    short*          fftin;
+    float*          fftdata;
     fftwf_complex*  fftout;
 
     void hanning();

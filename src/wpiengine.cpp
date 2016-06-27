@@ -15,7 +15,7 @@ void WpiEngine::init()
     printf( "\n========== Windoo Testing ==========\n\n");
     PaEngine::init();
     FFTEngine::init();
-    //printf( "Suggested window size: %f\n", Window_Size());
+    printf( "Size of sample:              %d bits\n", sizeof(SAMPLE) * 8);
     printf( "Number of channels:          %d\n", NUM_CHANNELS);
     printf( "Sample rate:                 %d\n", SAMPLE_RATE);
     printf( "FFT size:                    %d\n", N);
@@ -48,8 +48,10 @@ int WpiEngine::windooCallback( const void *inputBuffer, void *outputBuffer,
     // Play Sine wave
     static size_t frameIndex = 0;
     for( size_t i = 0; i < framesPerBuffer; i++ )
+    {
         *out++ = wavetable[frameIndex++];
-    if( frameIndex >= SAMPLE_RATE ) frameIndex -= SAMPLE_RATE;
+        if( frameIndex >= SAMPLE_RATE ) frameIndex -= SAMPLE_RATE;
+    }
 
     // FFT
     memcpy ( in, inputBuffer, sizeof(SAMPLE) * framesPerBuffer );
@@ -67,6 +69,57 @@ int WpiEngine::windooCallback( const void *inputBuffer, void *outputBuffer,
 
     return paContinue;
 }
+
+void WpiEngine::genWavetable(double frequency)
+{
+    delete [] wavetable;
+    wavetable = new short[SAMPLE_RATE];
+    char* generatedSnd = (char*) wavetable;
+    double* sample = new double[SAMPLE_RATE];
+    for (int i = 0; i < SAMPLE_RATE; i++)
+        sample[i] = sin((2.0 * M_PI * ((double) i)) / (SAMPLE_RATE / frequency));
+
+    int idx = 0;
+    for (int i = 0; i < SAMPLE_RATE; i++)
+    {
+        //printf("i: %d\n", i);
+        double dVal = sample[i];
+        short val = (short) ((int) (32767.0 * dVal));
+        int i2 = idx + 1;
+        //printf("idx: %d\n", idx);
+        generatedSnd[idx] = (char) (val & 255);
+        //printf("i2: %d\n", i2);
+        idx = i2 + 1;
+        generatedSnd[i2] = (char) ((65280 & val) >> 8);
+    }
+    delete [] sample;
+}
+
+void WpiEngine::genSineWavetable(double frequency)
+{
+    // initialise sinusoidal wavetable
+    OUTPUT_FREQUENCY = frequency;
+    delete [] wavetable;
+    wavetable = NULL;
+    if ( ! (wavetable = new SAMPLE[SAMPLE_RATE]) )  return printf("Could not allocate wavetable array.\n"), terminate();
+    for( size_t i = 0; i < SAMPLE_RATE; i++ )
+        wavetable[i] =  (float) sin( 2.f * M_PI * ((double)i) / ((double)SAMPLE_RATE) * frequency );
+}
+
+void WpiEngine::genEmptyWavetable()
+{
+    delete [] wavetable;
+    wavetable = NULL;
+    if ( ! (wavetable = new SAMPLE[SAMPLE_RATE]) )  return printf("Could not allocate wavetable array.\n"), terminate();
+    memset (wavetable, 0.f, SAMPLE_RATE * sizeof(SAMPLE));
+}
+
+/*WpiEngine::shortToDouble(short* s, double* d)
+{
+    for (int i = 0; i < d.length; i++)
+        d[i] = (double) s[i];
+    return d;
+}*/
 
 void WpiEngine::windoo()
 {
@@ -143,7 +196,7 @@ void WpiEngine::getFrequency()
                 break;
             }
 
-    printf ("---------- Frequency strengths ----------\n");
+    printf ("---------- Input frequency strengths ----------\n");
     for (int a = 0; a < A; a++)
     {
         float freq = resolution() * bin[a];
