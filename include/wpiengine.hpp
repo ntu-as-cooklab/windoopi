@@ -5,6 +5,10 @@
 #include "fftengine.hpp"
 #include <vector>
 
+#include <unistd.h>			//Used for UART
+#include <fcntl.h>			//Used for UART
+#include <termios.h>		//Used for UART
+
 //#define DITHER_FLAG   (paDitherOff)
 typedef short SAMPLE;
 
