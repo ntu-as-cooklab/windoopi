@@ -11,8 +11,7 @@ int main()
     //wpiEngine.printDevs();
     //std::string filename = "record.raw";
     //wpiEngine.filename = filename.c_str();
-    wpiEngine.serialWrite();
-    //wpiEngine.windoo();
+    wpiEngine.windoo();
     wpiEngine.terminate();
     return wpiEngine.err;
 }

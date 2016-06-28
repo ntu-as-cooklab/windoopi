@@ -31,6 +31,8 @@ void WpiEngine::init()
     printf( "Output frequency:            %f\n", OUTPUT_FREQUENCY);
 
     y2k.tm_hour = 0;   y2k.tm_min = 0; y2k.tm_sec = 0;
+
+
     y2k.tm_year = 115; y2k.tm_mon = 0; y2k.tm_mday = 1;
 }
 
@@ -101,6 +103,7 @@ int WpiEngine::windooCallback( const void *inputBuffer, void *outputBuffer,
     return paContinue;
 }
 
+char message[44];
 
 void WpiEngine::initSerial()
 {
@@ -109,14 +112,20 @@ void WpiEngine::initSerial()
 
     if (wiringPiSetup () == -1)
         printf ("Unable to start wiringPi: %s\n") ;
+
+    sprintf(message, "AT+DTX=22,");
+    message[42] = '\r';
+    message[43] = '\n';
 }
 
 void WpiEngine::serialWrite()
 {
     static unsigned int lastTime  = millis();
-    static char message[11];
-    if ( millis() - lastTime > 1e3 )
+
+    unsigned int thisTime = millis();
+    if ( thisTime - lastTime > 60e3 )
     {
+        lastTime = thisTime;
         time_t timer;
         time(&timer);  // get current time; same as: timer = time(NULL)
         unsigned short  thetime         = round( difftime(timer, mktime(&y2k)) * 1000.0 ) ;
@@ -125,19 +134,25 @@ void WpiEngine::serialWrite()
         unsigned short  pressure        = round( Pressure / (double) nPressure * 10.0 ) ;
         unsigned short  wind            = round( Wind / (double) nWind * 100.0 ) ;
 
-        *((unsigned short*) ((void*) message))      = thetime;
-        *((unsigned short*) ((void*) message + 2))  = humidity;
-        *((unsigned short*) ((void*) message + 4))  = temperature;
-        *((unsigned short*) ((void*) message + 6))  = pressure;
-        *((unsigned short*) ((void*) message + 8))  = wind;
-        *((char*) ((void*) message + 10))           = 0;
+        /**((unsigned short*) ((void*) message + 10))  = thetime;
+        *((unsigned short*) ((void*) message + 12))  = humidity;
+        *((unsigned short*) ((void*) message + 14))  = temperature;
+        *((unsigned short*) ((void*) message + 16))  = pressure;
+        *((unsigned short*) ((void*) message + 18))  = wind;
+        *((char*) ((void*) message + 20))           = 0;
 
-        for (int i=0; i<11; i++)
+        //printf("\n");*/
+
+        sprintf(message+10, "%04X%04X%04X%04X%04X%02X", thetime, humidity, temperature, pressure, wind, 0);
+
+        printf("Send to serial: ");
+        for (int i=0; i<44; i++)
         {
             printf("%c", message[i]);
             serialPutchar (fd, message[i]);
         }
         printf("\n");
+
 
         Temperature = Wind = Pressure = Humidity = 0;
         nTemperature = nWind = nPressure = nHumidity = 0;
