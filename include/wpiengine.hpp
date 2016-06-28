@@ -10,7 +10,7 @@ typedef short SAMPLE;
 
 struct WpiEngine : public PaEngine, public FFTEngine
 {
-    double      OUTPUT_FREQUENCY;
+    double      OUTPUT_FREQUENCY = 15e3;
     SAMPLE*     wavetable           = NULL;
 
     WpiEngine()

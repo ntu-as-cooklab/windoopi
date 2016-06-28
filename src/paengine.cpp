@@ -37,7 +37,7 @@ void PaEngine::selectDefaultInputParameters()
     // Set input parameters
     delete inputParameters;
     inputParameters = new PaStreamParameters;
-    if ( (inputParameters->device = 4//Pa_GetDefaultInputDevice()
+    if ( (inputParameters->device = 2//Pa_GetDefaultInputDevice()
  ) == paNoDevice )  return printf("Error: No default input device.\n"), terminate();
     inputParameters->channelCount = NUM_CHANNELS;
     inputParameters->sampleFormat = PA_SAMPLE_TYPE;
@@ -50,7 +50,7 @@ void PaEngine::selectDefaultOutputParameters()
     // Set output parameters
     delete outputParameters;
     outputParameters = new PaStreamParameters;
-    if ( (outputParameters->device = 4//Pa_GetDefaultOutputDevice()
+    if ( (outputParameters->device = 2//Pa_GetDefaultOutputDevice()
  ) == paNoDevice )  return printf("Error: No default output device.\n"), terminate();
     outputParameters->channelCount = NUM_CHANNELS;
     outputParameters->sampleFormat = PA_SAMPLE_TYPE;
