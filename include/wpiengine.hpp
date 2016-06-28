@@ -26,6 +26,7 @@ struct WpiEngine : public PaEngine, public FFTEngine
     {
         //delete [] wavetable;
         //wavetable = NULL;
+        close(uart0_filestream);
     }
 
     double F_max()                       { return SAMPLE_RATE / 2.f; }
@@ -51,6 +52,9 @@ struct WpiEngine : public PaEngine, public FFTEngine
 
     int finalizeHeader();
     void finalizeData();
+
+    void initUART();
+    int uart0_filestream = -1;
 };
 
 #endif
