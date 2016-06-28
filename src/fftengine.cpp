@@ -7,29 +7,29 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "FFTRealFloat.hpp"
+#include "FFTRealDouble.hpp"
 
 void FFTEngine::init()
 {
-    fftin   = (short*)          malloc(sizeof(short) * N);
-    fftdata = (float*)          malloc(sizeof(float) * N);
-    fftout  = (fftwf_complex*)  malloc(sizeof(fftwf_complex) * N);
-    fftplan = fftwf_plan_dft_r2c_1d(N, fftdata, fftout, FFTW_ESTIMATE);
+    fftin   = new short[N];
+    fftdata = new double[N];
+    fftout  = new fftw_complex[N];
+    fftplan = fftw_plan_dft_r2c_1d(N, fftdata, fftout, FFTW_ESTIMATE);
 }
 
 FFTEngine::~FFTEngine()
 {
-    fftwf_destroy_plan(fftplan);
+    fftw_destroy_plan(fftplan);
 
-    //free(fftin);
-    //free(fftout);
+    delete [] fftin;
+    delete [] fftdata;
+    delete [] fftout;
 }
 
 void FFTEngine::fft()
 {
-    static FFTRealFloat fftRealFloat(N);
-
-    fftRealFloat.ft(fftdata, fftout);
+    static FFTRealDouble fftRealDouble(N);
+    fftRealDouble.ft(fftdata, fftout);
 
     //fftwf_execute(fftplan);
 }

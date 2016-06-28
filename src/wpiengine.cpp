@@ -9,6 +9,8 @@
 #include <math.h>
 #include <portaudio.h>
 #include <algorithm>
+#include <vector>
+using std::vector;
 
 void WpiEngine::init()
 {
@@ -60,7 +62,26 @@ int WpiEngine::windooCallback( const void *inputBuffer, void *outputBuffer,
     {
         hanning();
         fft();
-        getFrequency();
+        double f = getFrequency();
+        //printf("%f\n", f);
+        if (f >= 100. && f < 900.0)
+        {
+            header.push_back(f);
+            if (currentMeasureType != 0 && data.size() > 0)
+            {
+                finalizeData();
+                data.clear();
+            }
+        }
+        else if (f >= 900.0 && f <= 20000.0)
+        {
+            data.push_back(f);
+            if (header.size() > 0)
+            {
+                currentMeasureType = finalizeHeader();
+                header.clear();
+            }
+        }
         in = fftin;
     }
 
@@ -70,7 +91,7 @@ int WpiEngine::windooCallback( const void *inputBuffer, void *outputBuffer,
     return paContinue;
 }
 
-void WpiEngine::genWavetable(double frequency)
+void WpiEngine::genSineWavetable(double frequency)
 {
     delete [] wavetable;
     wavetable = new short[SAMPLE_RATE];
@@ -82,20 +103,17 @@ void WpiEngine::genWavetable(double frequency)
     int idx = 0;
     for (int i = 0; i < SAMPLE_RATE; i++)
     {
-        //printf("i: %d\n", i);
         double dVal = sample[i];
         short val = (short) ((int) (32767.0 * dVal));
         int i2 = idx + 1;
-        //printf("idx: %d\n", idx);
         generatedSnd[idx] = (char) (val & 255);
-        //printf("i2: %d\n", i2);
         idx = i2 + 1;
         generatedSnd[i2] = (char) ((65280 & val) >> 8);
     }
     delete [] sample;
 }
 
-void WpiEngine::genSineWavetable(double frequency)
+void WpiEngine::genFloatSineWavetable(double frequency)
 {
     // initialise sinusoidal wavetable
     OUTPUT_FREQUENCY = frequency;
@@ -111,15 +129,8 @@ void WpiEngine::genEmptyWavetable()
     delete [] wavetable;
     wavetable = NULL;
     if ( ! (wavetable = new SAMPLE[SAMPLE_RATE]) )  return printf("Could not allocate wavetable array.\n"), terminate();
-    memset (wavetable, 0.f, SAMPLE_RATE * sizeof(SAMPLE));
+    memset (wavetable, 0, SAMPLE_RATE * sizeof(SAMPLE));
 }
-
-/*WpiEngine::shortToDouble(short* s, double* d)
-{
-    for (int i = 0; i < d.length; i++)
-        d[i] = (double) s[i];
-    return d;
-}*/
 
 void WpiEngine::windoo()
 {
@@ -166,16 +177,16 @@ void WpiEngine::windoo()
     }
 }
 
-inline float magnitude(fftwf_complex z)
+inline double magnitude(fftw_complex z)
 {
     return sqrt(z[0]*z[0] + z[1]*z[1]);
 }
 
-void WpiEngine::getFrequency()
+double WpiEngine::getFrequency()
 {
-    const int A = 10;
+    const int A = 1;
     int bin[A];
-    float max[A];
+    double max[A];
     for (int a = 0; a < A; a++)
     {
         bin[a] = 0;
@@ -184,7 +195,7 @@ void WpiEngine::getFrequency()
 
     for (int i = 0; i < N_bins(); i++)
         for (int a = 0; a < A; a++)
-            if ( magnitude(fftout[i]) > max[a] && resolution() * i < 2e4)
+            if ( magnitude(fftout[i]) > max[a] && (resolution() * i) < 20e3)
             {
                 if (a+1 < A)
                 {
@@ -196,11 +207,112 @@ void WpiEngine::getFrequency()
                 break;
             }
 
-    printf ("---------- Input frequency strengths ----------\n");
+    /*printf ("---------- Input frequency strengths ----------\n");
     for (int a = 0; a < A; a++)
     {
-        float freq = resolution() * bin[a];
+        double freq = resolution() * bin[a];
         printf ("[%2d]\tFreq: %12.6f,\tAmp: %12.6f\n", a+1, freq, max[a]);
+    }*/
+
+    /*int BinsPerBar = 256;
+    for (int i = 0; i < N_bins()/BinsPerBar; i++)
+    {
+        float freq = resolution() * (i*BinsPerBar + BinsPerBar/2.0);
+        float amp = 0;
+        for (int n = 0; n < BinsPerBar; n++) amp += magnitude(fftout[i*BinsPerBar + n]);
+        if (freq < 20e3)
+        {
+            printf ("%10.3f: %15.2f", freq, 20 * log(amp));
+            if (freq, 20 * log(amp) > 300) printf("*****");
+            printf("\n");
+        }
+    }*/
+    return resolution() * bin[0];
+}
+
+int WpiEngine::finalizeHeader()
+{
+        std::sort(header.begin(), header.begin() + header.size());
+        double f = header[header.size() / 2];
+        if (f >= 480.0 && f <= 520.0)
+            return 1;
+        if (f >= 530.0 && f <= 570.0)
+            return 2;
+        if (f >= 580.0 && f <= 620.0)
+            return 3;
+        if (f >= 630.0 && f <= 670.0)
+            return 4;
+        if (f >= 680.0 && f <= 720.0)
+            return 5;
+        if (f >= 730.0 && f <= 770.0)
+            return 6;
+        if (f < 780.0 || f > 820.0)
+            return 0;
+        return 7;
+}
+
+inline double frequencyToWindSpeed(double frequency)
+{
+    double windFrequency = frequency / 20.0;
+    double wind = windFrequency * (((((((-3.3857 * pow(10.0, -13.0)) * pow(windFrequency, 5.0)) + ((4.384 * pow(10.0, -10.0)) * pow(windFrequency, 4.0))) - ((2.1796 * pow(10.0, -7.0)) * pow(windFrequency, 3.0))) + ((5.2009 * pow(10.0, -5.0)) * pow(windFrequency, 2.0))) - ((6.044 * pow(10.0, -3.0)) * windFrequency)) + (6.6953 * pow(10.0, -1.0)));
+    if (wind < 1.0)
+        return 0.0;
+    return wind;
+}
+
+inline double frequencyToTemperature(double frequency)
+{
+    return (3380.0 / log((10.0 * frequency) / (10000.0 * exp(-11.336575549220193)))) - 273.15;
+}
+
+inline double frequencyToHumidity(double frequency)
+{
+    return -6.0 + ((125.0 / pow(2.0, 16.0)) * (frequency * 4.0));
+}
+
+inline double frequencyToHumidityTemp(double frequency)
+{
+    return -46.85 + ((175.72 / pow(2.0, 16.0)) * (frequency * 4.0));
+}
+
+inline double frequencyToPressure(double frequency)
+{
+    return frequency / 10.0;
+}
+
+void WpiEngine::finalizeData()
+{
+    std::sort(data.begin(), data.begin() + data.size());
+    double f = data[data.size() / 2];
+    //if (getStandardDeviation(data) >= 1000.0) {}
+
+    if (currentMeasureType == 1)
+    {
+        calibValues.push_back(f);
+        printf("Calibrating = TRUE\n");
+        return;
     }
-    printf( "\nPress ENTER to stop stream\n\n");
+    if (currentMeasureType != 1 && calibValues.size() > 0)
+    {
+        std::sort(calibValues.begin(), calibValues.begin() + calibValues.size());
+        calibValue = calibValues[calibValues.size() / 2];
+        calibValues.clear();
+        printf("Calibrating = FALSE\n");
+    }
+
+    f = ((f / calibValue) * 1000.0) - 1000.0;
+    if (currentMeasureType == 6)
+        pres1_corr = f;
+    else if (currentMeasureType == 7)
+    {
+        pres2_corr = f;
+        double pressure = (100.0 * ((double) round(pres1_corr / 100.0))) + (pres2_corr / 100.0);
+        pres1_corr = 0.0;
+        pres2_corr = 0.0;
+        printf("Pressure: %f\n", pressure);
+    }
+    else
+    {
+        //notifyObservers(new EventDetectFrequency(currentMeasureType, f));
+    }
 }

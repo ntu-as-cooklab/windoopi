@@ -1,35 +1,38 @@
-#ifndef FFTREALFLOAT_HPP
-#define FFTREALFLOAT_HPP
+#ifndef FFTREALDOUBLE_HPP
+#define FFTREALDOUBLE_HPP
 
 #include <stdio.h>
 #include <fftw3.h>
-#include "FFTRealFloat_Mixed.hpp"
+#include "FFTRealDouble_Mixed.hpp"
 #include "fftengine.hpp"
 
-struct FFTRealFloat : public FFTRealFloat_Mixed
+struct FFTRealDouble : public FFTRealDouble_Mixed
 {
 private:
     int N;
-    float* wavetable = NULL;
+    double* wavetable = NULL;
     inline int N_bins() { return N & 1 ? (N + 1) / 2 : N/2 + 1; }
 
 public:
 
-    FFTRealFloat(int n)
+    FFTRealDouble(int n)
     {
         N = n;
-        if ( !wavetable )
-            wavetable = new float[((N * 2) + 15)];
-
+        if ( !wavetable ) wavetable = new double[((N * 2) + 15)];
         rffti(N, wavetable);
     }
 
-    void ft(float* x)
+    ~FFTRealDouble()
+    {
+        delete [] wavetable;
+    }
+
+    void ft(double* x)
     {
         rfftf(N, x, wavetable);
     }
 
-    void ft(float* x, fftwf_complex* y)
+    void ft(double* x, fftw_complex* y)
     {
         rfftf(N, x, wavetable);
 
@@ -47,12 +50,12 @@ public:
         }
     }
 
-    void bt(float* x)
+    void bt(double* x)
     {
         rfftb(N, x, wavetable);
     }
 
-    void bt(fftwf_complex* x, float* y)
+    void bt(fftw_complex* x, double* y)
     {
         y[0] = x[0][0];
         for (int i = 1; i < N_bins(); i++)
