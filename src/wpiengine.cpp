@@ -309,10 +309,27 @@ void WpiEngine::finalizeData()
         double pressure = (100.0 * ((double) round(pres1_corr / 100.0))) + (pres2_corr / 100.0);
         pres1_corr = 0.0;
         pres2_corr = 0.0;
-        printf("Pressure: %f\n", pressure);
+        printf("Pressure2: %f\n", pressure);
     }
     else
     {
-        //notifyObservers(new EventDetectFrequency(currentMeasureType, f));
+        switch (currentMeasureType)
+        {
+            case 2: // WIND
+                printf("Wind: %f\n", frequencyToWindSpeed(f));
+                break;
+            case 3: // TEMP
+                printf("Temp: %f\n", frequencyToTemperature(f));
+                break;
+            case 4: // HUMIDITY
+                printf("Humidity: %f\n", frequencyToHumidity(f));
+                break;
+            case 5: // HUMIDITY_TEMP
+                printf("Humidity/Temp: %f\n", frequencyToHumidityTemp(f));
+                break;
+            case 8: // PRESSURE
+                printf("Pressure: %f\n", frequencyToPressure(f));
+                break;
+        }
     }
 }
