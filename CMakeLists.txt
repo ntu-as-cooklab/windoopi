@@ -35,5 +35,5 @@ if (WIN32)
 endif (WIN32)
 
 if (UNIX)
-target_link_libraries(windoopi fftw3 portaudio m)
+target_link_libraries(windoopi wiringPi fftw3 portaudio m)
 endif (UNIX)

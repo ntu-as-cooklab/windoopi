@@ -55,7 +55,7 @@ struct WpiEngine : public PaEngine, public FFTEngine
 
     int fd;
     void serialWrite();
-    void serialWrite();
+    void initSerial();
 
     double Time, Humidity, Temperature, Pressure, Wind;
     int nHumidity = 0, nTemperature = 0, nPressure = 0, nWind = 0;

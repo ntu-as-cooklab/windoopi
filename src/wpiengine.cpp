@@ -12,6 +12,7 @@
 #include <vector>
 using std::vector;
 
+#include <wiringPi.h>
 #include <wiringSerial.h>
 #include <time.h>       // time_t, struct tm, difftime, time, mktime
 
@@ -104,10 +105,10 @@ int WpiEngine::windooCallback( const void *inputBuffer, void *outputBuffer,
 void WpiEngine::initSerial()
 {
     if ((fd = serialOpen ("/dev/ttyAMA0", 115200)) < 0)
-        fprintf (stderr, "Unable to open serial device: %s\n", strerror (errno)) ;
+        printf ("Unable to open serial device: %s\n") ;
 
     if (wiringPiSetup () == -1)
-        fprintf (stdout, "Unable to start wiringPi: %s\n", strerror (errno)) ;
+        printf ("Unable to start wiringPi: %s\n") ;
 }
 
 void WpiEngine::serialWrite()
@@ -141,8 +142,6 @@ void WpiEngine::serialWrite()
         Temperature = Wind = Pressure = Humidity = 0;
         nTemperature = nWind = nPressure = nHumidity = 0;
     }
-
-    return 0;
 }
 
 void WpiEngine::genSineWavetable(double frequency)
