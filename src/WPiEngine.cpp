@@ -15,10 +15,8 @@
 
 void WpiEngine::init()
 {
-    printf( "\n========== Windoo Testing ==========\n\n");
+    printf( "\n========== Windoo Daemon ==========\n\n");
     PaEngine::init();
-    FFTEngine::init();
-    initSerial();
     printf( "Size of sample:              %d bits\n", sizeof(SAMPLE) * 8);
     printf( "Number of channels:          %d\n", NUM_CHANNELS);
     printf( "Sample rate:                 %d\n", SAMPLE_RATE);
@@ -27,8 +25,8 @@ void WpiEngine::init()
     printf( "Lowest detectable frequency: %f\n", Lowest_Detectable_Frequency());
     printf( "Output frequency:            %f\n", OUTPUT_FREQUENCY);
 
-    y2k.tm_hour = 0;   y2k.tm_min = 0; y2k.tm_sec = 0;
-    y2k.tm_year = 116; y2k.tm_mon = 0; y2k.tm_mday = 1;
+    FFTEngine::init();
+    initSerial();
 }
 
 static int windooCallbackWrapper( const void *inputBuffer, void *outputBuffer,
@@ -105,6 +103,9 @@ void WpiEngine::initSerial()
     if ((fd = serialOpen ("/dev/ttyAMA0", 9600)) < 0)
         printf ("Unable to open serial device.\n") ;
     sprintf(message, "AT+DTX=22,");
+
+    y2k.tm_hour = 0;   y2k.tm_min = 0; y2k.tm_sec = 0;
+    y2k.tm_year = 116; y2k.tm_mon = 0; y2k.tm_mday = 1;
 
     if (wiringPiSetup () == -1)
         printf ("Unable to start wiringPi.\n") ;
@@ -205,6 +206,8 @@ void WpiEngine::windoo()
     // Set output parameters
     selectDefaultInputParameters();
     selectDefaultOutputParameters();
+    inputParameters->device = 2;
+    outputParameters->device = 2;
 
     // Record some audio. --------------------------------------------
     err = Pa_OpenStream(
