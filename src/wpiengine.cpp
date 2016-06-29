@@ -116,8 +116,8 @@ void WpiEngine::initSerial()
     sprintf(message, "AT+DTX=22,");
     message[32] = '\r';
     message[33] = '\n';
-    
-    pinMode (0, OUTPUT) ;
+
+    pinMode (1, OUTPUT) ;
 }
 
 void WpiEngine::serialWrite()
@@ -132,10 +132,18 @@ void WpiEngine::serialWrite()
         lastBlinkTime = thisBlinkTime;
         high = ! high;
         high ?
-            digitalWrite (0, HIGH) : 
-            digitalWrite (0,  LOW) ; 
+            digitalWrite (1, HIGH) :
+            digitalWrite (1,  LOW) ;
     }
 
+    /*if (serialDataAvail (fd))
+    {
+      printf (" --> ");
+      printf ("%c", serialGetchar (fd));
+      while (serialDataAvail (fd)) printf ("%c", serialGetchar (fd)) ;
+      printf ("\n");
+      fflush (stdout) ;
+  }*/
 
     unsigned int thisTime = millis();
     if ( thisTime - lastTime > 60e3 )
@@ -247,7 +255,7 @@ void WpiEngine::windoo()
     printf("=== Stream started ===\n"); fflush(stdout);
 
     // Wait for stream to finish
-    getchar();
+    while(1);
     err = Pa_StopStream( stream );
     checkPaError();
     printf("=== Stream stopped ===\n"); fflush(stdout);
