@@ -1,0 +1,12 @@
+[Unit]
+Description=Windoo
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/windoopi
+TimeoutSec=infinity
+RuntimeMaxSec=infinity
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

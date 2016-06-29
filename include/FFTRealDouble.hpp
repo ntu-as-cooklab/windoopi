@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <fftw3.h>
 #include "FFTRealDouble_Mixed.hpp"
-#include "fftengine.hpp"
+#include "FFTEngine.hpp"
 
 struct FFTRealDouble : public FFTRealDouble_Mixed
 {

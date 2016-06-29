@@ -2,9 +2,10 @@
 #define WPIENGINE_HPP
 
 #include "paengine.hpp"
-#include "fftengine.hpp"
+#include "FFTEngine.hpp"
 #include <vector>
 #include <time.h>       // time_t, struct tm, difftime, time, mktime
+#include <wiringPi.h>
 
 //#define DITHER_FLAG   (paDitherOff)
 typedef short SAMPLE;
@@ -25,6 +26,7 @@ struct WpiEngine : public PaEngine, public FFTEngine
     }
     ~WpiEngine()
     {
+        digitalWrite (1, LOW);
         //delete [] wavetable;
         //wavetable = NULL;
     }
@@ -59,7 +61,7 @@ struct WpiEngine : public PaEngine, public FFTEngine
 
     double Time, Humidity, Temperature, Pressure, Wind;
     int nHumidity = 0, nTemperature = 0, nPressure = 0, nWind = 0;
-    struct tm y2k = {0};
+    tm y2k = tm();
 };
 
 #endif
