@@ -31,8 +31,6 @@ void WpiEngine::init()
     printf( "Output frequency:            %f\n", OUTPUT_FREQUENCY);
 
     y2k.tm_hour = 0;   y2k.tm_min = 0; y2k.tm_sec = 0;
-
-
     y2k.tm_year = 115; y2k.tm_mon = 0; y2k.tm_mday = 1;
 }
 
@@ -73,7 +71,7 @@ int WpiEngine::windooCallback( const void *inputBuffer, void *outputBuffer,
         hanning();
         fft();
         double f = getFrequency();
-        //printf("%f\n", f);
+
         if (f >= 100. && f < 900.0)
         {
             header.push_back(f);
@@ -114,8 +112,6 @@ void WpiEngine::initSerial()
         printf ("Unable to start wiringPi: %s\n") ;
 
     sprintf(message, "AT+DTX=22,");
-    message[32] = '\r';
-    message[33] = '\n';
 
     pinMode (1, OUTPUT) ;
 }
@@ -131,9 +127,7 @@ void WpiEngine::serialWrite()
     {
         lastBlinkTime = thisBlinkTime;
         high = ! high;
-        high ?
-            digitalWrite (1, HIGH) :
-            digitalWrite (1,  LOW) ;
+        digitalWrite (1, high ? HIGH: LOW);
     }
 
     /*if (serialDataAvail (fd))
@@ -157,19 +151,9 @@ void WpiEngine::serialWrite()
         unsigned short  pressure        = round( Pressure / (double) nPressure * 10.0 ) ;
         unsigned short  wind            = round( Wind / (double) nWind * 100.0 ) ;
 
-        /**((unsigned short*) ((void*) message + 10))  = thetime;
-        *((unsigned short*) ((void*) message + 12))  = humidity;
-        *((unsigned short*) ((void*) message + 14))  = temperature;
-        *((unsigned short*) ((void*) message + 16))  = pressure;
-        *((unsigned short*) ((void*) message + 18))  = wind;
-        *((char*) ((void*) message + 20))           = 0;
-
-        //printf("\n");*/
-
         sprintf(message+10, "%04X%04X%04X%04X%04X%02X", thetime, humidity, temperature, pressure, wind, 0);
         message[32] = '\r';
         message[33] = '\n';
-
 
         printf("Send to serial: ");
         for (int i=0; i<34; i++)
@@ -178,7 +162,6 @@ void WpiEngine::serialWrite()
             serialPutchar (fd, message[i]);
         }
         printf("\n");
-
 
         Temperature = Wind = Pressure = Humidity = 0;
         nTemperature = nWind = nPressure = nHumidity = 0;
