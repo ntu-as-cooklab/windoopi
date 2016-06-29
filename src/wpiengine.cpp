@@ -103,24 +103,39 @@ int WpiEngine::windooCallback( const void *inputBuffer, void *outputBuffer,
     return paContinue;
 }
 
-char message[44];
+char message[34];
 
 void WpiEngine::initSerial()
 {
-    if ((fd = serialOpen ("/dev/ttyAMA0", 115200)) < 0)
+    if ((fd = serialOpen ("/dev/ttyAMA0", 9600)) < 0)
         printf ("Unable to open serial device: %s\n") ;
 
     if (wiringPiSetup () == -1)
         printf ("Unable to start wiringPi: %s\n") ;
 
     sprintf(message, "AT+DTX=22,");
-    message[42] = '\r';
-    message[43] = '\n';
+    message[32] = '\r';
+    message[33] = '\n';
+    
+    pinMode (0, OUTPUT) ;
 }
 
 void WpiEngine::serialWrite()
 {
     static unsigned int lastTime  = millis();
+    static unsigned int lastBlinkTime = millis();
+    static bool high = true;
+
+    unsigned int thisBlinkTime = millis();
+    if (thisBlinkTime - lastBlinkTime > 500)
+    {
+        lastBlinkTime = thisBlinkTime;
+        high = ! high;
+        high ?
+            digitalWrite (0, HIGH) : 
+            digitalWrite (0,  LOW) ; 
+    }
+
 
     unsigned int thisTime = millis();
     if ( thisTime - lastTime > 60e3 )
@@ -144,9 +159,12 @@ void WpiEngine::serialWrite()
         //printf("\n");*/
 
         sprintf(message+10, "%04X%04X%04X%04X%04X%02X", thetime, humidity, temperature, pressure, wind, 0);
+        message[32] = '\r';
+        message[33] = '\n';
+
 
         printf("Send to serial: ");
-        for (int i=0; i<44; i++)
+        for (int i=0; i<34; i++)
         {
             printf("%c", message[i]);
             serialPutchar (fd, message[i]);
