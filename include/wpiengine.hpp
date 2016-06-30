@@ -62,6 +62,11 @@ struct WpiEngine : public PaEngine, public FFTEngine
     double Time, Humidity, Temperature, Pressure, Wind;
     int nHumidity = 0, nTemperature = 0, nPressure = 0, nWind = 0;
     tm y2k = tm();
+
+    bool filterWind(double value);
+    double smoothingWind = -1;
+    const int COUNT_WIND_DEFAULT = 3;
+    int countWind = COUNT_WIND_DEFAULT;
 };
 
 #endif

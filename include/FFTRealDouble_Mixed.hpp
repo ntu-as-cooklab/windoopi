@@ -4,7 +4,7 @@
 #ifndef M_PI
     #define M_PI 3.14159265358979
 #endif
-#include <math.h>
+#include <cmath>
 #include <string.h>
 
 struct FFTRealDouble_Mixed

@@ -2,7 +2,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
+#include <cmath>
 #include <algorithm>
 #include <vector>
 using std::vector;
@@ -81,12 +81,12 @@ int WpiEngine::finalizeHeader()
         return 7;
 }
 
-inline double frequencyToWindSpeed(double frequency)
-{
+double frequencyToWindSpeed(double frequency) {
     double windFrequency = frequency / 20.0;
     double wind = windFrequency * (((((((-3.3857 * pow(10.0, -13.0)) * pow(windFrequency, 5.0)) + ((4.384 * pow(10.0, -10.0)) * pow(windFrequency, 4.0))) - ((2.1796 * pow(10.0, -7.0)) * pow(windFrequency, 3.0))) + ((5.2009 * pow(10.0, -5.0)) * pow(windFrequency, 2.0))) - ((6.044 * pow(10.0, -3.0)) * windFrequency)) + (6.6953 * pow(10.0, -1.0)));
-    if (wind < 1.0)
+    if (wind < 1.0) {
         return 0.0;
+    }
     return wind;
 }
 
@@ -148,10 +148,16 @@ void WpiEngine::finalizeData()
         switch (currentMeasureType)
         {
             case 2: // WIND
-                printf("Wind: %f\n", frequencyToWindSpeed(f));
-                Wind += frequencyToWindSpeed(f);
-                nWind ++;
+            {
+                double currentWind = frequencyToWindSpeed(f);
+                printf("Wind: %f\n", currentWind);
+                if (filterWind(currentWind))
+                {
+                    Wind += currentWind;
+                    nWind ++;
+                }
                 break;
+            }
             case 3: // TEMP
                 printf("Temp: %f\n", frequencyToTemperature(f));
                 Temperature += frequencyToTemperature(f);
@@ -170,4 +176,42 @@ void WpiEngine::finalizeData()
                 break;
         }
     }
+}
+
+bool WpiEngine::filterWind(double value)
+{
+    if (value >= 0.0 && value <= 150.0) {
+        if (smoothingWind < 0) {
+            smoothingWind = value;
+            return true;
+        }
+        int indexWindMaxGapValue;
+        if (value < 40.0)
+            indexWindMaxGapValue = 0;
+        else if (value < 60.0)
+            indexWindMaxGapValue = 1;
+        else if (value < 80.0)
+            indexWindMaxGapValue = 2;
+        else if (value < 100.0)
+            indexWindMaxGapValue = 3;
+        else
+            indexWindMaxGapValue = 4;
+
+        int gaps[5] = {30, 25, 20, 15, 10};
+
+        bool gapIsTooLarge = fabs(value - smoothingWind) > (double) gaps[indexWindMaxGapValue];
+        if (!gapIsTooLarge) {
+            countWind = COUNT_WIND_DEFAULT;
+            smoothingWind = value;
+            return true;
+        } else if (countWind <= 0) {
+            countWind = COUNT_WIND_DEFAULT;
+            smoothingWind = value;
+            return false;
+        } else if (gapIsTooLarge) {
+            countWind--;
+            return false;
+        }
+    }
+    return false;
 }
