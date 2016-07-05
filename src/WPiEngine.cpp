@@ -91,7 +91,7 @@ int WpiEngine::windooCallback( const void *inputBuffer, void *outputBuffer,
     serialWrite();
 
     // Write to file
-    if (fid) fwrite( inputBuffer, sizeof(SAMPLE), framesPerBuffer, fid );
+    //if (fid) fwrite( inputBuffer, sizeof(SAMPLE), framesPerBuffer, fid );
 
     return paContinue;
 }
@@ -146,8 +146,10 @@ void WpiEngine::serialWrite()
         {
             printf("%c", message[i]);
             serialPutchar (fd, message[i]);
+            fputc(message[i], fid);
         }
         printf("\n");
+        fputc('\n', fid);
 
         Temperature = Wind = Pressure = Humidity = 0;
         nTemperature = nWind = nPressure = nHumidity = 0;
@@ -200,9 +202,9 @@ void WpiEngine::windoo()
 {
     // Open output file
     if (filename)
-        ((fid = fopen(filename, "wb"))) ?
-            printf("Opened file '%s' for output.", filename) :
-            printf("Could not open file '%s' for output.", filename);
+        ((fid = fopen(filename, "w"))) ?
+            printf("Opened file '%s' for output.\n", filename) :
+            printf("Could not open file '%s' for output.\n", filename);
 
     // Set output parameters
     selectDefaultInputParameters();

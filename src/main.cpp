@@ -9,8 +9,8 @@ int main()
     WpiEngine wpiEngine;
     wpiEngine.init();
     //wpiEngine.printDevs();
-    //std::string filename = "record.raw";
-    //wpiEngine.filename = filename.c_str();
+    std::string filename = "/home/alarm/windoo.log";
+    wpiEngine.filename = filename.c_str();
     wpiEngine.windoo();
     wpiEngine.terminate();
     return wpiEngine.err;
