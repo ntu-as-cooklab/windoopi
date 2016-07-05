@@ -208,7 +208,7 @@ void WpiEngine::finalizeData()
                 break;
         }
     }
-    if (fid) fflush(fid);
+    //if (fid) fflush(fid);
 }
 
 bool WpiEngine::filterWind(double value)

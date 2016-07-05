@@ -146,10 +146,10 @@ void WpiEngine::serialWrite()
         {
             printf("%c", message[i]);
             serialPutchar (fd, message[i]);
-            fputc(message[i], fid);
+            if (fid) fputc(message[i], fid);
         }
         printf("\n");
-        fputc('\n', fid);
+        if (fid) fputc('\n', fid);
 
         Temperature = Wind = Pressure = Humidity = 0;
         nTemperature = nWind = nPressure = nHumidity = 0;
@@ -235,6 +235,7 @@ void WpiEngine::windoo()
         digitalWrite (1, high ? HIGH: LOW);
         high = ! high;
         delay(400);
+        if (fid) fflush(fid);
     }
 
     err = Pa_StopStream( stream );
