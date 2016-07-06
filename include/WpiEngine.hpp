@@ -27,8 +27,8 @@ struct WpiEngine : public PaEngine, public FFTEngine
     ~WpiEngine()
     {
         digitalWrite (1, LOW);
-        //delete [] wavetable;
-        //wavetable = NULL;
+        delete [] wavetable;
+        wavetable = NULL;
     }
 
     double F_max()                       { return SAMPLE_RATE / 2.f; }
@@ -41,32 +41,24 @@ struct WpiEngine : public PaEngine, public FFTEngine
     double getFrequency();
 
     void genSineWavetable(double frequency);
-    void genFloatSineWavetable(double frequency);
-    void genEmptyWavetable();
 
     std::vector<double> header;
     std::vector<double> data;
     int currentMeasureType = 0;
-    double calibValue = 1000.0;
-    std::vector<double> calibValues;
-    double pres1_corr = 0.0;
-    double pres2_corr = 0.0;
 
     int finalizeHeader();
     void finalizeData();
 
-    int fd;
-    void serialWrite();
-    void initSerial();
+    bool filterWind(double value);
+    const int COUNT_WIND_DEFAULT = 3;
 
     double Time, Humidity, Temperature, Pressure, Wind;
     int nHumidity = 0, nTemperature = 0, nPressure = 0, nWind = 0;
-    tm y2k = tm();
 
-    bool filterWind(double value);
-    double smoothingWind = -1;
-    const int COUNT_WIND_DEFAULT = 3;
-    int countWind = COUNT_WIND_DEFAULT;
+    int fd;
+    tm time2016 = tm();
+    void initSerial();
+    void serialWrite();
 };
 
 #endif

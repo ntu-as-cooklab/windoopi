@@ -1,4 +1,4 @@
-#include "wpiengine.hpp"
+#include "WpiEngine.hpp"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,8 +9,6 @@
 #include <cmath>
 #include <portaudio.h>
 
-#include <wiringPi.h>
-#include <wiringSerial.h>
 #include <time.h>       // time_t, struct tm, difftime, time, mktime
 
 void WpiEngine::init()
@@ -88,73 +86,10 @@ int WpiEngine::windooCallback( const void *inputBuffer, void *outputBuffer,
         in = fftin;
     }
 
-    serialWrite();
-
     // Write to file
     //if (fid) fwrite( inputBuffer, sizeof(SAMPLE), framesPerBuffer, fid );
 
     return paContinue;
-}
-
-char message[34];
-
-void WpiEngine::initSerial()
-{
-    if ((fd = serialOpen ("/dev/ttyAMA0", 9600)) < 0)
-        printf ("Unable to open serial device.\n") ;
-    sprintf(message, "AT+DTX=22,");
-
-    y2k.tm_hour = 0;   y2k.tm_min = 0; y2k.tm_sec = 0;
-    y2k.tm_year = 116; y2k.tm_mon = 0; y2k.tm_mday = 1;
-
-    if (wiringPiSetup () == -1)
-        printf ("Unable to start wiringPi.\n") ;
-    pinMode (1, OUTPUT) ;
-}
-
-void WpiEngine::serialWrite()
-{
-    static unsigned int lastTime  = millis();
-
-    /*if (serialDataAvail (fd))
-    {
-      printf (" --> ");
-      printf ("%c", serialGetchar (fd));
-      while (serialDataAvail (fd)) printf ("%c", serialGetchar (fd)) ;
-      printf ("\n");
-      fflush (stdout) ;
-  }*/
-
-    unsigned int thisTime = millis();
-    if ( thisTime - lastTime > 60e3 )
-    {
-        lastTime = thisTime;
-        time_t timer;
-        time(&timer);  // get current time; same as: timer = time(NULL)
-        unsigned short  thetime         = round( difftime(timer, mktime(&y2k)) * 1000.0 ) ;
-        unsigned short  humidity        = round( Humidity / (double) nHumidity * 100.0 ) ;
-        short           temperature     = round( Temperature / (double) nTemperature * 100.0 ) ;
-        unsigned short  pressure        = round( Pressure / (double) nPressure * 10.0 ) ;
-        unsigned short  wind            = round( Wind / (double) nWind * 100.0 ) ;
-
-        sprintf(message+10, "%04X%04X%04X%04X%04X%02X", thetime, humidity, temperature, pressure, wind, 0);
-        message[32] = '\r';
-        message[33] = '\n';
-
-        printf("Send to serial: ");
-        for (int i=0; i<34; i++)
-        {
-            printf("%c", message[i]);
-            serialPutchar (fd, message[i]);
-            if (fid) fputc(message[i], fid);
-        }
-        printf("\n");
-        if (fid) fputc('\n', fid);
-
-        Temperature = Wind = Pressure = Humidity = 0;
-        nTemperature = nWind = nPressure = nHumidity = 0;
-    }
-    fflush (stdout);
 }
 
 void WpiEngine::genSineWavetable(double frequency)
@@ -177,25 +112,6 @@ void WpiEngine::genSineWavetable(double frequency)
         generatedSnd[i2] = (char) ((65280 & val) >> 8);
     }
     delete [] sample;
-}
-
-void WpiEngine::genFloatSineWavetable(double frequency)
-{
-    // initialise sinusoidal wavetable
-    OUTPUT_FREQUENCY = frequency;
-    delete [] wavetable;
-    wavetable = NULL;
-    if ( ! (wavetable = new SAMPLE[SAMPLE_RATE]) )  return printf("Could not allocate wavetable array.\n"), terminate();
-    for( size_t i = 0; i < SAMPLE_RATE; i++ )
-        wavetable[i] =  (float) sin( 2.f * M_PI * ((double)i) / ((double)SAMPLE_RATE) * frequency );
-}
-
-void WpiEngine::genEmptyWavetable()
-{
-    delete [] wavetable;
-    wavetable = NULL;
-    if ( ! (wavetable = new SAMPLE[SAMPLE_RATE]) )  return printf("Could not allocate wavetable array.\n"), terminate();
-    memset (wavetable, 0, SAMPLE_RATE * sizeof(SAMPLE));
 }
 
 void WpiEngine::windoo()
@@ -235,7 +151,8 @@ void WpiEngine::windoo()
         digitalWrite (1, high ? HIGH: LOW);
         high = ! high;
         delay(400);
-        if (fid) fflush(fid);
+        serialWrite();
+        fflush (stdout);
     }
 
     err = Pa_StopStream( stream );

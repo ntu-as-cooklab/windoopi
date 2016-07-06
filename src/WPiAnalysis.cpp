@@ -1,4 +1,4 @@
-#include "wpiengine.hpp"
+#include "WpiEngine.hpp"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -62,28 +62,27 @@ double WpiEngine::getFrequency()
 
 int WpiEngine::finalizeHeader()
 {
-        std::sort(header.begin(), header.begin() + header.size());
-        double f = header[header.size() / 2];
-        if (f >= 480.0 && f <= 520.0)
-            return 1;
-        if (f >= 530.0 && f <= 570.0)
-            return 2;
-        if (f >= 580.0 && f <= 620.0)
-            return 3;
-        if (f >= 630.0 && f <= 670.0)
-            return 4;
-        if (f >= 680.0 && f <= 720.0)
-            return 5;
-        if (f >= 730.0 && f <= 770.0)
-            return 6;
-        if (f < 780.0 || f > 820.0)
-            return 0;
-        return 7;
+    std::sort(header.begin(), header.begin() + header.size());
+    double f = header[header.size() / 2];
+    if (f >= 480.0 && f <= 520.0)
+        return 1;
+    if (f >= 530.0 && f <= 570.0)
+        return 2;
+    if (f >= 580.0 && f <= 620.0)
+        return 3;
+    if (f >= 630.0 && f <= 670.0)
+        return 4;
+    if (f >= 680.0 && f <= 720.0)
+        return 5;
+    if (f >= 730.0 && f <= 770.0)
+        return 6;
+    if (f < 780.0 || f > 820.0)
+        return 0;
+    return 7;
 }
 
 double frequencyToWindSpeed(double frequency)
 {
-    //printf("Frequency:       %f\n", frequency);
     double windFrequency = frequency / 20.0;
     double wind = windFrequency * (
     - 3.3857e-13 * pow(windFrequency, 5)
@@ -92,10 +91,8 @@ double frequencyToWindSpeed(double frequency)
     + 5.2009e-5  * pow(windFrequency, 2)
     - 6.0440e-3  * windFrequency
     + 6.6953e-1 );
-    if (wind < 1.0)
-        return 0.0;
 
-    return wind;
+    return wind < 1.0 ? 0.0 : wind;
 }
 
 inline double frequencyToTemperature(double frequency)
@@ -120,8 +117,14 @@ inline double frequencyToPressure(double frequency)
 
 void WpiEngine::finalizeData()
 {
+    double calibValue = 1000.0;
+    std::vector<double> calibValues;
+    static double pres1_corr = 0.0;
+    static double pres2_corr = 0.0;
+
     std::sort(data.begin(), data.begin() + data.size());
     double f = data[data.size() / 2];
+
     //if (getStandardDeviation(data) >= 1000.0) {}
 
     if (currentMeasureType == 1)
@@ -201,6 +204,9 @@ void WpiEngine::finalizeData()
 
 bool WpiEngine::filterWind(double value)
 {
+    static double smoothingWind = -1;
+    static int countWind = COUNT_WIND_DEFAULT;
+
     if (value >= 0.0 && value <= 150.0) {
         if (smoothingWind < 0) {
             smoothingWind = value;
