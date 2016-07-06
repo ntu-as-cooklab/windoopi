@@ -7,8 +7,6 @@ ExecStart=/usr/bin/windoopi
 TimeoutSec=infinity
 RuntimeMaxSec=infinity
 Restart=always
-StandardOutput=tty
-TTYPath=/home/alarm/out
 FailureAction=systemctl restart windoo
 RestartSec=3
 

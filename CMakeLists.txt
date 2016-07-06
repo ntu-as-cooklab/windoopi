@@ -30,12 +30,16 @@ include_directories("include")
 file(GLOB WINDOOPI_SRC "src/*.cpp")
 add_executable(windoopi ${WINDOOPI_SRC})
 
+file(GLOB TESTING_SRC "test.cpp")
+add_executable(testing ${TESTING_SRC})
+
 if (WIN32)
     target_link_libraries(windoopi fftw3.a portaudio.a winmm setupapi winpthread.a stdc++.a gcc.a winpthread.a)
 endif (WIN32)
 
 if (UNIX)
 target_link_libraries(windoopi wiringPi fftw3 portaudio m)
+target_link_libraries(testing m)
 endif (UNIX)
 
 install(TARGETS windoopi DESTINATION /usr/bin/)

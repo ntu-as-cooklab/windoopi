@@ -1,7 +1,7 @@
 #ifndef WPIENGINE_HPP
 #define WPIENGINE_HPP
 
-#include "paengine.hpp"
+#include "PAEngine.hpp"
 #include "FFTEngine.hpp"
 #include <vector>
 #include <time.h>       // time_t, struct tm, difftime, time, mktime
@@ -52,7 +52,7 @@ struct WpiEngine : public PaEngine, public FFTEngine
     bool filterWind(double value);
     const int COUNT_WIND_DEFAULT = 3;
 
-    double Time, Humidity, Temperature, Pressure, Wind;
+    double Time = 0, Humidity = 0, Temperature = 0, Pressure = 0, Wind = 0;
     int nHumidity = 0, nTemperature = 0, nPressure = 0, nWind = 0;
 
     int fd;

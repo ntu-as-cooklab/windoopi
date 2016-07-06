@@ -189,7 +189,7 @@ void WpiEngine::finalizeData()
             double pressure = (100.0 * ((double) round(pres1_corr / 100.0))) + (pres2_corr / 100.0);
             pres1_corr = 0.0;
             pres2_corr = 0.0;
-            Pressure += frequencyToWindSpeed(f);
+            Pressure += pressure;
             nPressure ++;
             printf("(Corrected) Pressure:    %f\n", pressure);
             break;

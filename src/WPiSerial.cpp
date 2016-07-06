@@ -23,15 +23,16 @@ void WpiEngine::serialWrite()
         lastTime = thisTime;
         time_t timer;
         time(&timer);  // get current time; same as: timer = time(NULL)
-        unsigned short  thetime         = round( difftime(timer, mktime(&time2016)) * 1000.0 ) ;
-        unsigned short  humidity        = round( Humidity / (double) nHumidity * 100.0 ) ;
-        short           temperature     = round( Temperature / (double) nTemperature * 100.0 ) ;
-        unsigned short  pressure        = round( Pressure / (double) nPressure * 10.0 ) ;
-        unsigned short  wind            = round( Wind / (double) nWind * 100.0 ) ;
+        unsigned short  thetime         = round( difftime(timer, mktime(&time2016)) * 1000 ) ;
+        unsigned short  humidity        = round( Humidity / (double) nHumidity * 100 );
+        short           temperature     = round( Temperature / (double) nTemperature * 100 ) ;
+        unsigned short  pressure        = round( Pressure / (double) nPressure ) ;
+        unsigned short  wind            = round( Wind / (double) nWind * 100 ) ;
+        char            winddir         = 0;
 
         char message[34];
         sprintf(message, "AT+DTX=22,");
-        sprintf(message+10, "%04X%04X%04X%04X%04X%02X", thetime, humidity, temperature, pressure, wind, 0);
+        sprintf(message+10, "%04X%04X%04X%04X%04X%02X", thetime, humidity, temperature, pressure, wind, winddir);
         message[32] = '\r';
         message[33] = '\n';
 

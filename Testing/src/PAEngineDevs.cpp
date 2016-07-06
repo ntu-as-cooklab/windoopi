@@ -56,7 +56,7 @@
     #endif
 #endif
 
-#include "paengine.hpp"
+#include "PAEngine.hpp"
 
 void PaEngine::printSupportedStandardSampleRates(const PaStreamParameters *inputParameters, const PaStreamParameters *outputParameters)
 {
