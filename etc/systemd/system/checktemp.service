@@ -1,14 +1,12 @@
 [Unit]
-Description=Windoo
+Description=Check Temperature
 
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/windoopi
+ExecStart=/usr/local/bin/checktemp
 TimeoutSec=infinity
 RuntimeMaxSec=infinity
 Restart=always
-FailureAction=systemctl restart windoo
-RestartSec=3
 
 [Install]
 WantedBy=multi-user.target

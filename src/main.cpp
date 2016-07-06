@@ -7,8 +7,6 @@
 int main()
 {
     WpiEngine wpiEngine;
-    wpiEngine.init();
     wpiEngine.windoo();
-    wpiEngine.terminate();
     return wpiEngine.err;
 }

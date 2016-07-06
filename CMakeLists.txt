@@ -38,8 +38,10 @@ if (WIN32)
 endif (WIN32)
 
 if (UNIX)
-target_link_libraries(windoopi wiringPi fftw3 portaudio m)
+target_link_libraries(windoopi wiringPi fftw3 portaudio m curl)
 target_link_libraries(testing m)
 endif (UNIX)
 
-install(TARGETS windoopi DESTINATION /usr/bin/)
+install(TARGETS windoopi DESTINATION /usr/local/bin/)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/etc/ DESTINATION /etc)
+FILE(INSTALL ${CMAKE_SOURCE_DIR}/checktemp DESTINATION /usr/local/bin/)

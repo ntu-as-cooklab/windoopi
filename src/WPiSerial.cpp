@@ -21,13 +21,18 @@ void WpiEngine::serialWrite()
     if ( thisTime - lastTime > 60e3 )
     {
         lastTime = thisTime;
-        time_t timer;
-        time(&timer);  // get current time; same as: timer = time(NULL)
+        time_t timer = time(NULL);
         unsigned short  thetime         = round( difftime(timer, mktime(&time2016)) * 1000 ) ;
-        unsigned short  humidity        = round( Humidity / (double) nHumidity * 100 );
-        short           temperature     = round( Temperature / (double) nTemperature * 100 ) ;
-        unsigned short  pressure        = round( Pressure / (double) nPressure ) ;
-        unsigned short  wind            = round( Wind / (double) nWind * 100 ) ;
+
+        avgHumidity     = Humidity      / (double) nHumidity;
+        avgTemperature  = Temperature   / (double) nTemperature;
+        avgPressure     = Pressure      / (double) nPressure;
+        avgWind         = Wind          / (double) nWind;
+
+        unsigned short  humidity        = round( avgHumidity * 100 );
+        short           temperature     = round( avgTemperature * 100 ) ;
+        unsigned short  pressure        = round( avgPressure ) ;
+        unsigned short  wind            = round( avgWind * 100 ) ;
         char            winddir         = 0;
 
         char message[34];
@@ -40,6 +45,14 @@ void WpiEngine::serialWrite()
             serialPutchar (fd, message[i]);
 
         printf("Sent to serial: %s\n", message);
+
+        windoo_humidity     = avgHumidity;
+        windoo_temperature  = avgTemperature;
+        windoo_pressure     = avgPressure;
+        windoo_wind         = avgWind;
+        location_heading    = winddir;
+
+        post();
 
         Temperature = Wind = Pressure = Humidity = 0;
         nTemperature = nWind = nPressure = nHumidity = 0;

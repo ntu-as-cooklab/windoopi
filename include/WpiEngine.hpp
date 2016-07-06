@@ -3,6 +3,7 @@
 
 #include "PAEngine.hpp"
 #include "FFTEngine.hpp"
+#include "WPiCURL.hpp"
 #include <vector>
 #include <time.h>       // time_t, struct tm, difftime, time, mktime
 #include <wiringPi.h>
@@ -10,7 +11,7 @@
 //#define DITHER_FLAG   (paDitherOff)
 typedef short SAMPLE;
 
-struct WpiEngine : public PaEngine, public FFTEngine
+struct WpiEngine : public PaEngine, public FFTEngine, public WPiCURL
 {
     double      OUTPUT_FREQUENCY = 15e3;
     SAMPLE*     wavetable           = NULL;
@@ -23,6 +24,10 @@ struct WpiEngine : public PaEngine, public FFTEngine
         FRAMES_PER_BUFFER   = 2048;
         N                   = 8192;
         genSineWavetable    (15e3);
+        init();
+        user_id     = 1;
+        windoo_id   = 1;
+        phone_model = "Raspberry Pi (Network)";
     }
     ~WpiEngine()
     {
@@ -52,8 +57,9 @@ struct WpiEngine : public PaEngine, public FFTEngine
     bool filterWind(double value);
     const int COUNT_WIND_DEFAULT = 3;
 
-    double Time = 0, Humidity = 0, Temperature = 0, Pressure = 0, Wind = 0;
     int nHumidity = 0, nTemperature = 0, nPressure = 0, nWind = 0;
+    double Time = 0, Humidity = 0, Temperature = 0, Pressure = 0, Wind = 0;
+    double avgTime = 0, avgHumidity = 0, avgTemperature = 0, avgPressure = 0, avgWind = 0;
 
     int fd;
     tm time2016 = tm();

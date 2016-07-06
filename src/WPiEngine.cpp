@@ -25,6 +25,7 @@ void WpiEngine::init()
 
     FFTEngine::init();
     initSerial();
+    WPiCURL::init();
 }
 
 static int windooCallbackWrapper( const void *inputBuffer, void *outputBuffer,
