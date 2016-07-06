@@ -37,3 +37,5 @@ endif (WIN32)
 if (UNIX)
 target_link_libraries(windoopi wiringPi fftw3 portaudio m)
 endif (UNIX)
+
+install(TARGETS windoopi DESTINATION /usr/bin/)

@@ -81,15 +81,16 @@ int WpiEngine::finalizeHeader()
         return 7;
 }
 
-double frequencyToWindSpeed(double frequency) {
-    printf("Frequency:       %f\n", frequency);
+double frequencyToWindSpeed(double frequency)
+{
+    //printf("Frequency:       %f\n", frequency);
     double windFrequency = frequency / 20.0;
     double wind = windFrequency * (
     - 3.3857e-13 * pow(windFrequency, 5)
-    + 4.384e-10 * pow(windFrequency, 4)
-    - 2.1796e-7 * pow(windFrequency, 3)
-    + 5.2009e-5 * pow(windFrequency, 2)
-    - 6.044e-3 * windFrequency
+    + 4.3840e-10 * pow(windFrequency, 4)
+    - 2.1796e-7  * pow(windFrequency, 3)
+    + 5.2009e-5  * pow(windFrequency, 2)
+    - 6.0440e-3  * windFrequency
     + 6.6953e-1 );
     if (wind < 1.0)
         return 0.0;
@@ -186,7 +187,7 @@ void WpiEngine::finalizeData()
                 break;
             }
             case 4: // HUMIDITY
-            {   
+            {
                 double humidity = frequencyToHumidity(f);
                 sprintf(msgstr, "Humidity: %f\n", humidity);
                 if (fid) fputs(msgstr, fid);
