@@ -14,7 +14,7 @@ inline double magnitude(fftw_complex z)
 
 double WpiEngine::getFrequency()
 {
-    const int A = 10;
+    const int A = 1;
     int bin[A];
     double max[A];
     for (int a = 0; a < A; a++)
@@ -120,8 +120,6 @@ inline double frequencyToPressure(double frequency)
 
 void WpiEngine::finalizeData()
 {
-    char msgstr[50];
-
     std::sort(data.begin(), data.begin() + data.size());
     double f = data[data.size() / 2];
     //if (getStandardDeviation(data) >= 1000.0) {}
@@ -130,8 +128,6 @@ void WpiEngine::finalizeData()
     {
         calibValues.push_back(f);
         printf("Calibrating = TRUE\n");
-        sprintf(msgstr, "Calibrating = TRUE\n");
-        if (fid) fputs(msgstr, fid);
         return;
     }
     if (currentMeasureType != 1 && calibValues.size() > 0)
@@ -140,76 +136,67 @@ void WpiEngine::finalizeData()
         calibValue = calibValues[calibValues.size() / 2];
         calibValues.clear();
         printf("Calibrating = FALSE\n");
-        sprintf(msgstr, "Calibrating = FALSE\n");
-        if (fid) fputs(msgstr, fid);
     }
 
     f = ((f / calibValue) * 1000.0) - 1000.0;
-    if (currentMeasureType == 6)
-        pres1_corr = f;
-    else if (currentMeasureType == 7)
+
+    switch (currentMeasureType)
     {
-        pres2_corr = f;
-        double pressure = (100.0 * ((double) round(pres1_corr / 100.0))) + (pres2_corr / 100.0);
-        pres1_corr = 0.0;
-        pres2_corr = 0.0;
-        Pressure += frequencyToWindSpeed(f);
-        nPressure ++;
-        printf("Pressure: %f\n", pressure);
-        sprintf(msgstr, "Pressure: %f\n", pressure);
-        if (fid) fputs(msgstr, fid);
-    }
-    else
-    {
-        switch (currentMeasureType)
+        case 2: // WIND
         {
-            case 2: // WIND
+            double wind = frequencyToWindSpeed(f);
+            if (filterWind(wind))
             {
-                double currentWind = frequencyToWindSpeed(f);
-                if (filterWind(currentWind))
-                {
-                    printf("Wind: %f\n", currentWind);
-                    sprintf(msgstr, "Wind: %f\n", currentWind);
-                    if (fid) fputs(msgstr, fid);
-                    Wind += currentWind;
-                    nWind ++;
-                }
-                break;
+                Wind += wind;
+                nWind ++;
+                printf("            Wind speed:  %f\n", wind);
             }
-            case 3: // TEMP
-            {
-                double temp = frequencyToTemperature(f);
-                printf("Temp: %f\n", temp);
-                sprintf(msgstr, "Temp: %f\n", temp);
-                if (fid) fputs(msgstr, fid);
-                Temperature += temp;
-                nTemperature ++;
-                break;
-            }
-            case 4: // HUMIDITY
-            {
-                double humidity = frequencyToHumidity(f);
-                sprintf(msgstr, "Humidity: %f\n", humidity);
-                if (fid) fputs(msgstr, fid);
-                printf("Humidity: %f\n", humidity);
-                break;
-            }
-            case 5: // HUMIDITY_TEMP
-            {
-                double humiditytemp = frequencyToHumidityTemp(f);
-                printf("H/Temp: %f\n", humiditytemp);
-                sprintf(msgstr, "H/Temp: %f\n", humiditytemp);
-                if (fid) fputs(msgstr, fid);
-                Humidity += humiditytemp;
-                nHumidity ++;
-                break;
-            }
-            case 8: // PRESSURE
-                printf("Pressure8: %f\n", frequencyToPressure(f));
-                break;
+            break;
+        }
+        case 3: // TEMP
+        {
+            double temp = frequencyToTemperature(f);
+            printf("            Temperature: %f\n", temp);
+            break;
+        }
+        case 4: // HUMIDITY
+        {
+            double humidity = frequencyToHumidity(f);
+            Humidity += humidity;
+            nHumidity ++;
+            printf("            Humidity:    %f\n", humidity);
+            break;
+        }
+        case 5: // HUMIDITY_TEMP
+        {
+            double humiditytemp = frequencyToHumidityTemp(f);
+            Temperature += humiditytemp;
+            nTemperature ++;
+            printf("(Humidity)  Temperature: %f\n", humiditytemp);
+            break;
+        }
+        case 6:
+        {
+            pres1_corr = f;
+            break;
+        }
+        case 7:
+        {
+            pres2_corr = f;
+            double pressure = (100.0 * ((double) round(pres1_corr / 100.0))) + (pres2_corr / 100.0);
+            pres1_corr = 0.0;
+            pres2_corr = 0.0;
+            Pressure += frequencyToWindSpeed(f);
+            nPressure ++;
+            printf("(Corrected) Pressure:    %f\n", pressure);
+            break;
+        }
+        case 8: // PRESSURE
+        {
+            printf("            Pressure:    %f\n", frequencyToPressure(f));
+            break;
         }
     }
-    //if (fid) fflush(fid);
 }
 
 bool WpiEngine::filterWind(double value)
