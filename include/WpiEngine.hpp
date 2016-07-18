@@ -22,7 +22,7 @@ struct WpiEngine : public PaEngine, public FFTEngine, public WPiCURL
         NUM_CHANNELS        = 1;        // mono
         SAMPLE_RATE         = 44100;
         FRAMES_PER_BUFFER   = 2048;
-        N                   = 8192;
+        N                   = 4096;
         genSineWavetable    (15e3);
         init();
         user_id     = 1;

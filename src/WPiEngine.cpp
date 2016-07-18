@@ -65,6 +65,7 @@ int WpiEngine::windooCallback( const void *inputBuffer, void *outputBuffer,
         hanning();
         fft();
         double f = getFrequency();
+        printf("Frequency: %f    \n", f);
 
         if (f >= 100. && f < 900.0)
         {

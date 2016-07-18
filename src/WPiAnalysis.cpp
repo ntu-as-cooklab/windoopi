@@ -115,10 +115,12 @@ inline double frequencyToPressure(double frequency)
     return frequency / 10.0;
 }
 
-void WpiEngine::finalizeData()
-{
     double calibValue = 1000.0;
     std::vector<double> calibValues;
+
+
+void WpiEngine::finalizeData()
+{
     static double pres1_corr = 0.0;
     static double pres2_corr = 0.0;
 
@@ -127,10 +129,12 @@ void WpiEngine::finalizeData()
 
     //if (getStandardDeviation(data) >= 1000.0) {}
 
+    //printf("CalibValue: %f\n", calibValue);
+
     if (currentMeasureType == 1)
     {
         calibValues.push_back(f);
-        printf("Calibrating = TRUE\n");
+        printf("Calibrating = TRUE: %f\n", f);
         return;
     }
     if (currentMeasureType != 1 && calibValues.size() > 0)
@@ -141,7 +145,12 @@ void WpiEngine::finalizeData()
         printf("Calibrating = FALSE\n");
     }
 
+
+    printf ("Freq:      %f    ", f);
+
     f = ((f / calibValue) * 1000.0) - 1000.0;
+
+    printf ("CalibFreq: %f    ", f);
 
     switch (currentMeasureType)
     {
