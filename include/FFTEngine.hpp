@@ -10,6 +10,7 @@ struct FFTEngine
 
     fftw_plan      fftplan;
     short*         fftin;
+    short*         fftbuffer;
     double*        fftdata;
     fftw_complex*  fftout;
 

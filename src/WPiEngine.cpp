@@ -50,18 +50,22 @@ int WpiEngine::windooCallback( const void *inputBuffer, void *outputBuffer,
     (void) statusFlags;
 
     // Play Sine wave
+    /*
     static size_t frameIndex = 0;
     for( size_t i = 0; i < framesPerBuffer; i++ )
     {
         *out++ = wavetable[frameIndex++];
         if( frameIndex >= SAMPLE_RATE ) frameIndex -= SAMPLE_RATE;
     }
+    */
 
     // FFT
     memcpy ( in, inputBuffer, sizeof(SAMPLE) * framesPerBuffer );
     in += framesPerBuffer;
     if (in - fftin > N)
     {
+        //memcpy ( fftbuffer, fftin, sizeof(SAMPLE) * N );
+
         hanning();
         fft();
         double f = getFrequency();
@@ -85,8 +89,10 @@ int WpiEngine::windooCallback( const void *inputBuffer, void *outputBuffer,
                 header.clear();
             }
         }
-        in = fftin;
+        //memcpy ( fftin, fftbuffer + framesPerBuffer, sizeof(SAMPLE) * N - sizeof(SAMPLE) * framesPerBuffer);
+        in = fftin; // + ( N - framesPerBuffer);
     }
+
 
     // Write to file
     //if (fid) fwrite( inputBuffer, sizeof(SAMPLE), framesPerBuffer, fid );
@@ -127,8 +133,8 @@ void WpiEngine::windoo()
     // Set output parameters
     selectDefaultInputParameters();
     selectDefaultOutputParameters();
-    inputParameters->device = 2;
-    outputParameters->device = 2;
+    inputParameters->device = 4;
+    outputParameters->device = 4;
 
     // Record some audio. --------------------------------------------
     err = Pa_OpenStream(

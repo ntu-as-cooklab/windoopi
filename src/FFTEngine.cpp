@@ -12,6 +12,7 @@
 void FFTEngine::init()
 {
     fftin   = new short[N];
+    fftbuffer = new short[N];
     fftdata = new double[N];
     fftout  = new fftw_complex[N];
     fftplan = fftw_plan_dft_r2c_1d(N, fftdata, fftout, FFTW_ESTIMATE);
@@ -22,6 +23,7 @@ FFTEngine::~FFTEngine()
     fftw_destroy_plan(fftplan);
 
     delete [] fftin;
+    delete [] fftbuffer;
     delete [] fftdata;
     delete [] fftout;
 }
@@ -29,9 +31,9 @@ FFTEngine::~FFTEngine()
 void FFTEngine::fft()
 {
     static FFTRealDouble fftRealDouble(N);
-    fftRealDouble.ft(fftdata, fftout);
+    //fftRealDouble.ft(fftdata, fftout);
 
-    //fftwf_execute(fftplan);
+    fftw_execute(fftplan);
 }
 
 void FFTEngine::hanning()
